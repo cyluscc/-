@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你說過，燈會一直亮著｜試閱版</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400&display=swap');
+
+:root {
+  --ink: #1a1714;
+  --paper: #f6f1e8;
+  --paper2: #ede7d8;
+  --paper3: #e3dccb;
+  --red: #7c1f1f;
+  --red2: #a86060;
+  --gold: #907030;
+  --grey: #78706a;
+  --grey2: #a89f98;
+  --night: #1c1814;
+  --night2: #252018;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--night); font-family:'Noto Serif TC',serif; color:var(--ink); overflow-x:hidden; }
+
+/* progress */
+#prog { position:fixed; top:0; left:0; height:2px; background:var(--gold); z-index:999; transition:width .12s; opacity:.7; }
+
+/* ── COVER ── */
+#cover {
+  min-height:100vh; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:var(--night); position:relative; overflow:hidden; cursor:pointer;
+}
+.cv-grain {
+  position:absolute; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+  background-size:200px; pointer-events:none;
+}
+.cv-light {
+  position:absolute; width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, #3a300820 0%, transparent 70%);
+  animation:cl 9s ease-in-out infinite;
+}
+@keyframes cl { 0%,100%{transform:scale(.95);opacity:.5} 50%{transform:scale(1.1);opacity:1} }
+.cv-ring {
+  position:absolute; border-radius:50%; border:1px solid #ffffff08;
+  animation:cr 10s ease-in-out infinite;
+}
+.cv-ring:nth-child(3){width:500px;height:500px;animation-delay:0s;}
+.cv-ring:nth-child(4){width:350px;height:350px;border-color:#ffffff0c;animation-delay:-3s;}
+.cv-ring:nth-child(5){width:200px;height:200px;border-color:#ffffff12;animation-delay:-6s;}
+@keyframes cr{0%,100%{transform:scale(.97);opacity:.5}50%{transform:scale(1.03);opacity:1}}
+
+.cv { position:relative;z-index:2;text-align:center;animation:crise 2s cubic-bezier(.16,1,.3,1) forwards;opacity:0;transform:translateY(24px); }
+@keyframes crise{to{opacity:1;transform:translateY(0)}}
+
+.cv-eye { font-family:'Noto Sans TC',sans-serif;font-size:.65rem;font-weight:300;letter-spacing:.55em;color:var(--gold);margin-bottom:2rem;text-transform:uppercase; }
+.cv-t1 { font-size:clamp(1.8rem,4.5vw,2.9rem);font-weight:500;color:#f0ead8;line-height:1.7;letter-spacing:.18em; }
+.cv-t2 { font-size:clamp(.8rem,1.8vw,.95rem);font-weight:300;color:var(--red2);letter-spacing:.4em;margin-top:.9rem; }
+.cv-rule { width:44px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:2.6rem auto; }
+.cv-meta { font-family:'Noto Sans TC',sans-serif;font-size:.68rem;font-weight:300;color:var(--grey);letter-spacing:.3em;line-height:2.6; }
+.cv-hint { margin-top:3.5rem;font-family:'Noto Sans TC',sans-serif;font-size:.6rem;letter-spacing:.6em;color:#3e3830;animation:ch 3s ease-in-out infinite;animation-delay:2s; }
+@keyframes ch{0%,100%{opacity:0}50%{opacity:1}}
+
+/* ── NOVEL ── */
+#novel { display:none; background:var(--paper); min-height:100vh; }
+
+.siteheader {
+  position:fixed;top:2px;left:0;right:0;height:50px;
+  background:rgba(28,24,20,.96);backdrop-filter:blur(8px);
+  border-bottom:1px solid #ffffff06;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;padding:0 2rem;
+}
+.sh-title { font-family:'Noto Sans TC',sans-serif;font-size:.65rem;font-weight:300;color:var(--grey);letter-spacing:.2em; }
+.sh-nav { display:flex;gap:.2rem; }
+.sh-btn {
+  background:none;border:none;font-family:'Noto Sans TC',sans-serif;
+  font-size:.6rem;letter-spacing:.1em;color:#504840;padding:.4rem .7rem;
+  cursor:pointer;transition:color .2s;border-bottom:1.5px solid transparent;
+}
+.sh-btn:hover{color:var(--grey2);}
+.sh-btn.on{color:var(--gold);border-bottom-color:var(--gold);}
+
+.nbody { max-width:680px;margin:0 auto;padding:88px 2rem 10rem; }
+
+.cb { display:none; }
+.cb.on { display:block;animation:pin .65s cubic-bezier(.16,1,.3,1) forwards;opacity:0; }
+@keyframes pin{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* chapter header */
+.ch { text-align:center;padding:2.5rem 0 3.5rem;border-bottom:1px solid var(--paper3);margin-bottom:3.8rem; }
+.ch-lbl { font-family:'Noto Sans TC',sans-serif;font-size:.62rem;font-weight:300;letter-spacing:.55em;color:var(--gold);margin-bottom:1.3rem; }
+.ch-ttl { font-size:clamp(1.25rem,2.8vw,1.8rem);font-weight:500;color:var(--ink);letter-spacing:.13em;line-height:1.75;margin-bottom:1.8rem; }
+.ch-epi { display:inline-block;font-size:.8rem;font-weight:300;color:var(--grey);letter-spacing:.1em;line-height:2.4;padding:1rem 1.8rem;border-left:2px solid var(--paper3);text-align:left; }
+
+/* prose */
+.p { font-size:clamp(.95rem,1.9vw,1.04rem);line-height:2.35;letter-spacing:.06em;color:var(--ink); }
+.p p { margin-bottom:1.85em;text-indent:2em; }
+.p .ni { text-indent:0; }
+.p .c { text-indent:0;text-align:center; }
+.p .ts { text-indent:0;text-align:center;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;font-weight:300;color:var(--grey2);letter-spacing:.45em;margin:3em 0 2.5em; }
+.p .sb { text-indent:0;text-align:center;color:var(--grey2);font-size:.7rem;letter-spacing:.9em;margin:3.2em 0; }
+.p .th { color:var(--grey);font-size:.93em; }
+.p .kl { color:var(--red); }
+.p .lt {
+  text-indent:0;background:var(--paper2);border-left:3px solid var(--paper3);
+  padding:1.3rem 1.7rem;margin:.4em 0 2em;font-size:.93em;line-height:2.5;color:var(--grey);
+}
+.p .lt p{text-indent:0;margin-bottom:.7em;}
+.p .lt p:last-child{margin-bottom:0;}
+
+/* foot */
+.cf { text-align:center;margin-top:5.5rem;padding-top:3rem;border-top:1px solid var(--paper3); }
+.cf-d { font-size:.68rem;letter-spacing:.65em;color:var(--grey2);margin-bottom:2.2rem; }
+.cf-btn {
+  background:none;border:1px solid var(--ink);color:var(--ink);
+  font-family:'Noto Sans TC',sans-serif;font-size:.68rem;letter-spacing:.3em;
+  padding:.8rem 2.6rem;cursor:pointer;transition:all .3s;
+}
+.cf-btn:hover{background:var(--ink);color:var(--paper);}
+.cf-note { margin-top:1.3rem;font-family:'Noto Sans TC',sans-serif;font-size:.62rem;color:var(--grey2);letter-spacing:.3em; }
+
+/* ── 試閱結尾頁 ── */
+.preview-end {
+  text-align:center;
+  padding:5rem 2rem 8rem;
+  background:var(--paper);
+}
+.pe-rule { width:44px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:0 auto 3rem; }
+.pe-lbl { font-family:'Noto Sans TC',sans-serif;font-size:.6rem;font-weight:300;letter-spacing:.7em;color:var(--gold);margin-bottom:2rem; }
+.pe-title { font-size:clamp(1.3rem,3vw,2rem);font-weight:500;color:var(--ink);letter-spacing:.15em;line-height:1.9;margin-bottom:1rem; }
+.pe-sub { font-family:'Noto Sans TC',sans-serif;font-size:.7rem;font-weight:300;color:var(--grey);letter-spacing:.3em;margin-bottom:3rem;line-height:2.4; }
+.pe-note { font-family:'Noto Sans TC',sans-serif;font-size:.62rem;font-weight:300;color:var(--grey2);letter-spacing:.35em;line-height:2.8;margin-top:2rem; }
+
+@media(max-width:560px){
+  .sh-nav{gap:0;}
+  .sh-btn{padding:.4rem .45rem;font-size:.55rem;}
+  .nbody{padding:80px 1.3rem 8rem;}
+}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<!-- ══ COVER ══ -->
+<div id="cover" onclick="open_()">
+  <div class="cv-grain"></div>
+  <div class="cv-light"></div>
+  <div class="cv-ring"></div><div class="cv-ring"></div><div class="cv-ring"></div>
+  <div class="cv">
+    <div class="cv-eye">試閱版　長篇小說</div>
+    <div class="cv-t1">你說過，燈會一直亮著</div>
+    <div class="cv-t2">遲　初</div>
+    <div class="cv-rule"></div>
+    <div class="cv-meta">序章　＋　第一章<br>共收錄前兩章</div>
+    <div class="cv-hint">點擊　開始閱讀</div>
+  </div>
+</div>
+
+<!-- ══ NOVEL ══ -->
+<div id="novel">
+  <header class="siteheader">
+    <span class="sh-title">你說過，燈會一直亮著　｜　試閱版</span>
+    <nav class="sh-nav">
+      <button class="sh-btn on" onclick="go(0)" id="b0">序</button>
+      <button class="sh-btn" onclick="go(1)" id="b1">一</button>
+    </nav>
+  </header>
+
+  <div class="nbody">
+
+<!-- ══════════════════════════════════════
+     序章
+══════════════════════════════════════ -->
+<div class="cb on" id="c0">
+<div class="ch">
+  <div class="ch-lbl">序　章</div>
+  <div class="ch-ttl">整理遺物的人</div>
+  <div class="ch-epi">
+    人最擅長的事，<br>
+    是把「沒關係」說得<br>
+    像真的沒關係。
+  </div>
+</div>
+<div class="p">
+
+<p>整理遺物的時候，劉明稀在那疊舊信封裡找到了一張便利貼。</p>
+
+<p>淡黃色的，邊角捲起來。字跡是那種理工科的稜角——不好看，但每一橫每一豎都很認真，認真到像是怕寫完就沒機會再寫了。</p>
+
+<p>上面只有一句話：</p>
+
+<p class="c kl" style="font-size:1.05em;letter-spacing:.2em;padding:1em 0">「我家那盞燈，永遠替你留著。」</p>
+
+<p>沒有署名。沒有日期。</p>
+
+<p>她翻過去，背面還有幾個字，字跡比正面輕，像力氣用到一半就散了：</p>
+
+<p class="c" style="color:var(--grey);font-size:.9em;letter-spacing:.15em;padding:.8em 0">「你大概不知道。也沒關係。只要你好。」</p>
+
+<p>劉明稀站在那間塞滿紙箱的臥室正中央，窗外是台中秋天的天光，鴿子在屋簷上走來走去，樓下傳來樟樹落葉被風掃過地面的聲音，什麼都沒有發生。但她的手抖了一下，輕輕的，像是某個東西從裡面往外撐。</p>
+
+<p>她把那張便利貼攥在掌心，站了很久。</p>
+
+<p>她知道他把燈留著。</p>
+
+<p class="th">她只是不知道，他等得那麼認真。</p>
+
+<p class="sb">— ✦ —</p>
+
+<p>這個故事，從頭到尾都是一場誤會。</p>
+
+<p>最殘忍的地方在於：兩個人始終知道真相的一半，只是各自以為，對方手裡那一半是空的。</p>
+
+<p>所以誰都沒說。</p>
+
+<p>就這樣錯過了。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="go(1)">開始閱讀　第一章</button>
+</div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     第一章
+══════════════════════════════════════ -->
+<div class="cb" id="c1">
+<div class="ch">
+  <div class="ch-lbl">第　一　章</div>
+  <div class="ch-ttl">斜對角那扇窗</div>
+  <div class="ch-epi">
+    有些人，<br>
+    你每天都在同一棟樓碰見，<br>
+    但說了四年的話，<br>
+    全是在說別的。
+  </div>
+</div>
+<div class="p">
+
+<p class="ts">大一　九月　台北</p>
+
+<p>劉明稀的宿舍在女生舍四樓，斜對角是男生舍，三樓右邊那扇窗，深夜永遠亮著。</p>
+
+<p>她第一次注意到這件事，是剛開學沒多久。凌晨兩點多，她因為一篇報告急得睡不著，坐在書桌前發呆，對面那扇窗透著黃光，裡頭有個剪影，低著頭，一動不動，比她還安靜。</p>
+
+<p>也在熬夜。</p>
+
+<p>她沒來由地覺得好一點了，好像夜裡的世界不是只剩她一個人醒著。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>認識許煜深，是因為一本書。</p>
+
+<p>圖書館最後一本《挪威的森林》，兩個人同時伸手，他比她快了半秒，書脊已經在他掌心了。他抬頭，看她一眼，沉默了三秒，把書遞給她。</p>
+
+<p>「你先借。」</p>
+
+<p>「沒關係，你先拿到的——」</p>
+
+<p>「我不急。」</p>
+
+<p>不像客氣，更像陳述一個事實，語氣平，像在說天氣。她收下書，道了謝，回到位置，忍不住往他那桌看了一眼。他已經低頭繼續翻他的東西，那件事好像沒發生過。</p>
+
+<p>她把這個人記住了。不是因為他帥，也不是因為他讓了書，是那個眼神——他抬頭看她的一秒，沒有猶豫，沒有等她開口求，就直接把書遞過去了，好像這件事對他來說很自然，自然到不需要解釋。</p>
+
+<p class="th">她沒見過有人把「給你」做得那麼輕。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>後來她知道了他的名字，許煜深，資工系，安靜，成績好，不太跟人吃飯。宿舍的室友說他難聊，劉明稀沒有特別的意見，她只是記得他讓書給她的那一秒，那種乾淨俐落，那種把「沒關係」說得完全不像在客氣的語氣。</p>
+
+<p>他們不同系，沒有共同的課，沒有共同的朋友，偶爾在圖書館碰面，點一下頭，或者不點，就過去了。</p>
+
+<p>但那年冬天，她在文學院廊道跌了一跤，書散了一地，他從對面走過來，蹲下來幫她撿，沒說話，撿完了才說：「這段地板一下雨就滑，下次別讓人擔心。」</p>
+
+<p>她說謝謝，他說沒事，然後走了。</p>
+
+<p>她站在走廊想了很久——他說「別讓人擔心」，那個「人」是誰？是任何路過的人，還是說，是他？</p>
+
+<p class="th">還是這只是一句客套，她想太多了？</p>
+
+<p>她沒得出結論，但那句話夾在記憶裡，像一根很淡的刺，說不上疼，但也沒有忘。</p>
+
+<p class="sb">— ✦ —</p>
+
+<p>他們第一次說超過十個字，是圖書館快關館的時候。</p>
+
+<p>他路過她的座位，低頭說：「妳筆電的電源沒插緊，這樣很容易斷電。」</p>
+
+<p>她一看，果然。連忙插好，回頭想謝謝，他已經走了。</p>
+
+<p>她看著他推門走進夜裡的背影，忽然想——有的人說的每一句話都剛剛好落在你需要的地方，不多不少，不偏不倚。</p>
+
+<p>後來她發現，他們之間好像形成了一種無聲的習慣。圖書館碰見，不約而同往同一個閱覽室找位子，中間隔著兩排書架，各自做各自的事。偶爾抬頭，對方也在看，然後兩個人同時移開視線，繼續低頭。</p>
+
+<p class="th">這叫什麼？</p>
+
+<p class="th">劉明稀一直不敢給它一個名字。</p>
+
+<p class="sb">·　·　·</p>
+
+<p class="ts">大二　夏</p>
+
+<p>他有了她的聯絡方式，是因為系上的工作兜兜轉轉繞到她身上——幾句問完，她本以為就這樣了，沒想到過了幾天，他傳了一則訊息：「圖書館今晚有個講座，你有興趣嗎？」</p>
+
+<p>她盯著那則訊息，從傍晚看到天黑。</p>
+
+<p class="th">他是在約她嗎？還是隨口問，那種問了不去也沒關係的問法？</p>
+
+<p>她最後回：「好啊，幾點？」</p>
+
+<p>他回：「七點，圖書館門口。」</p>
+
+<p>那晚的講座她一個字都沒聽進去。她只記得他坐她左邊，中間隔著一個空位，他習慣用左手抄筆記，偶爾側過來跟她小聲說幾個字，她每次都要靠近一點才聽得清楚。</p>
+
+<p>散場的時候外面下起了雨，他把傘遞給她。「我宿舍近，跑一下就到了。」</p>
+
+<p>她想說不用，傘已經在她手裡了。</p>
+
+<p>她撐著他的傘走回女生舍，在門口停下，回頭看了一眼——他真的在跑，衣服半濕，但步伐不快，好像淋雨不算什麼，或者說，他願意淋。</p>
+
+<p class="th">劉明稀站在燈下，心裡有什麼東西搖了一下，她壓住了，往前走。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>這樣的往來，持續了整個大二。偶爾一起去圖書館，偶爾一起吃飯，偶爾訊息來回幾則，說一些沒什麼主題的話。考試週的時候，她桌上憑空多了一瓶眼藥水，她問他，他說你之前說睡不好，眼睛會乾，語氣像是「這個你要」而不是「這個給你」，她說謝謝，他說沒事，然後兩個人繼續各自低頭。</p>
+
+<p>朋友問她跟那個資工系的是什麼關係，她說就是朋友，說完自己也覺得這個答案奇怪——他們從頭到尾都保持著某種克制，好像雙方默契地不把這段關係推向任何明確的方向。</p>
+
+<p class="th">她有時候想，他大概對誰都是這樣。</p>
+
+<p class="th">她有時候又覺得，他對她好像不一樣。</p>
+
+<p class="th">她分不清楚，所以什麼都沒說。</p>
+
+<p class="sb">— ✦ —</p>
+
+<p class="ts">大二　期末</p>
+
+<p>大二最後一次圖書館，她早到，習慣性地留了一個位子，想著他來了往這邊坐。</p>
+
+<p>他進來，也往她這邊看了一眼，然後低頭在另一排找了個位子。</p>
+
+<p>她看著那個空位，繼續看書。</p>
+
+<p>快關館前，他路過她的桌，放下一個小紙袋，沒說話就出去了。她打開：是她常吃的那種牛奶糖，還有一張字條——</p>
+
+<p class="c" style="color:var(--gold);padding:.8em 0;font-size:.95em;letter-spacing:.18em">「期末加油。」</p>
+
+<p>她把字條夾進了那本《挪威的森林》裡，大一他讓給她的那本。</p>
+
+<p class="th">她不知道，他記得那本書是他讓給她的。</p>
+
+<p class="th">也不知道，他那天在她旁邊坐下去，又站起來，又換去另一排，來回了兩次。</p>
+
+<p class="th">他怕靠太近。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="showEnd()">試閱到此結束</button>
+</div>
+</div>
+
+
+<!-- ══ 試閱結尾 ══ -->
+<div class="cb" id="c-end">
+  <div class="preview-end">
+    <div class="pe-rule"></div>
+    <div class="pe-lbl">試　閱　結　束</div>
+    <div class="pe-title">你說過，燈會一直亮著</div>
+    <div class="pe-sub">
+      遲　初　著<br>
+      全文約一萬五千字<br>
+      共收錄　序章　＋　第一章至第六章　＋　尾章
+    </div>
+    <div class="pe-rule"></div>
+    <div class="pe-note">
+      那扇窗，一直亮著。<br>
+      她有沒有回頭看？<br>
+      他又等了多久？<br><br>
+      故事還沒說完。
+    </div>
+  </div>
+</div>
+
+  </div><!-- /nbody -->
+</div><!-- /novel -->
+
+<script>
+function open_() {
+  document.getElementById('cover').style.display = 'none';
+  document.getElementById('novel').style.display = 'block';
+  go(0);
+  window.addEventListener('scroll', onScroll);
+}
+
+let cur = 0;
+function go(n) {
+  document.querySelectorAll('.cb').forEach(el => el.classList.remove('on'));
+  document.querySelectorAll('.sh-btn').forEach(el => el.classList.remove('on'));
+  document.getElementById('c' + n).classList.add('on');
+  const btn = document.getElementById('b' + n);
+  if (btn) btn.classList.add('on');
+  cur = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showEnd() {
+  document.querySelectorAll('.cb').forEach(el => el.classList.remove('on'));
+  document.querySelectorAll('.sh-btn').forEach(el => el.classList.remove('on'));
+  document.getElementById('c-end').classList.add('on');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function onScroll() {
+  const scrolled = window.scrollY;
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = total > 0 ? (scrolled / total) * 100 : 0;
+  document.getElementById('prog').style.width = pct + '%';
+}
+</script>
+</body>
+</html>
