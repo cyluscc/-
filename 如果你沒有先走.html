@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>如果你沒有先走</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400&display=swap');
+
+:root {
+  --ink: #1a1714;
+  --paper: #f6f1e8;
+  --paper2: #ede7d8;
+  --paper3: #e3dccb;
+  --red: #7c1f1f;
+  --red2: #a86060;
+  --gold: #907030;
+  --grey: #78706a;
+  --grey2: #a89f98;
+  --night: #1c1814;
+  --night2: #252018;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--night); font-family:'Noto Serif TC',serif; color:var(--ink); overflow-x:hidden; }
+
+#prog { position:fixed; top:0; left:0; height:2px; background:var(--gold); z-index:999; transition:width .12s; opacity:.7; }
+
+/* ── COVER ── */
+#cover {
+  min-height:100vh; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:var(--night); position:relative; overflow:hidden; cursor:pointer;
+}
+.cv-grain {
+  position:absolute; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+  background-size:200px; pointer-events:none;
+}
+.cv-light {
+  position:absolute; width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, #3a300820 0%, transparent 70%);
+  animation:cl 9s ease-in-out infinite;
+}
+@keyframes cl { 0%,100%{transform:scale(.95);opacity:.5} 50%{transform:scale(1.1);opacity:1} }
+.cv-ring {
+  position:absolute; border-radius:50%; border:1px solid #ffffff08;
+  animation:cr 10s ease-in-out infinite;
+}
+.cv-ring:nth-child(3){width:500px;height:500px;animation-delay:0s;}
+.cv-ring:nth-child(4){width:350px;height:350px;border-color:#ffffff0c;animation-delay:-3s;}
+.cv-ring:nth-child(5){width:200px;height:200px;border-color:#ffffff12;animation-delay:-6s;}
+@keyframes cr{0%,100%{transform:scale(.97);opacity:.5}50%{transform:scale(1.03);opacity:1}}
+
+.cv { position:relative;z-index:2;text-align:center;animation:crise 2s cubic-bezier(.16,1,.3,1) forwards;opacity:0;transform:translateY(24px); }
+@keyframes crise{to{opacity:1;transform:translateY(0)}}
+
+.cv-eye { font-family:'Noto Sans TC',sans-serif;font-size:.65rem;font-weight:300;letter-spacing:.55em;color:var(--gold);margin-bottom:2rem;text-transform:uppercase; }
+.cv-t1 { font-size:clamp(1.8rem,4.5vw,2.9rem);font-weight:500;color:#f0ead8;line-height:1.7;letter-spacing:.18em; }
+.cv-t2 { font-size:clamp(.8rem,1.8vw,.95rem);font-weight:300;color:var(--red2);letter-spacing:.4em;margin-top:.9rem; }
+.cv-rule { width:44px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:2.6rem auto; }
+.cv-meta { font-family:'Noto Sans TC',sans-serif;font-size:.68rem;font-weight:300;color:var(--grey);letter-spacing:.3em;line-height:2.6; }
+.cv-hint { margin-top:3.5rem;font-family:'Noto Sans TC',sans-serif;font-size:.6rem;letter-spacing:.6em;color:#3e3830;animation:ch 3s ease-in-out infinite;animation-delay:2s; }
+@keyframes ch{0%,100%{opacity:0}50%{opacity:1}}
+
+/* ── NOVEL ── */
+#novel { display:none; background:var(--paper); min-height:100vh; }
+
+.siteheader {
+  position:fixed;top:2px;left:0;right:0;height:50px;
+  background:rgba(28,24,20,.96);backdrop-filter:blur(8px);
+  border-bottom:1px solid #ffffff06;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;padding:0 2rem;
+}
+.sh-title { font-family:'Noto Sans TC',sans-serif;font-size:.65rem;font-weight:300;color:var(--grey);letter-spacing:.2em; }
+.sh-nav { display:flex;gap:.2rem; }
+.sh-btn {
+  background:none;border:none;font-family:'Noto Sans TC',sans-serif;
+  font-size:.6rem;letter-spacing:.1em;color:#504840;padding:.4rem .7rem;
+  cursor:pointer;transition:color .2s;border-bottom:1.5px solid transparent;
+}
+.sh-btn:hover{color:var(--grey2);}
+.sh-btn.on{color:var(--gold);border-bottom-color:var(--gold);}
+
+.nbody { max-width:680px;margin:0 auto;padding:88px 2rem 10rem; }
+
+.cb { display:none; }
+.cb.on { display:block;animation:pin .65s cubic-bezier(.16,1,.3,1) forwards;opacity:0; }
+@keyframes pin{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+.ch { text-align:center;padding:2.5rem 0 3.5rem;border-bottom:1px solid var(--paper3);margin-bottom:3.8rem; }
+.ch-lbl { font-family:'Noto Sans TC',sans-serif;font-size:.62rem;font-weight:300;letter-spacing:.55em;color:var(--gold);margin-bottom:1.3rem; }
+.ch-ttl { font-size:clamp(1.25rem,2.8vw,1.8rem);font-weight:500;color:var(--ink);letter-spacing:.13em;line-height:1.75;margin-bottom:1.8rem; }
+.ch-epi { display:inline-block;font-size:.8rem;font-weight:300;color:var(--grey);letter-spacing:.1em;line-height:2.4;padding:1rem 1.8rem;border-left:2px solid var(--paper3);text-align:left; }
+
+.p { font-size:clamp(.95rem,1.9vw,1.04rem);line-height:2.35;letter-spacing:.06em;color:var(--ink); }
+.p p { margin-bottom:1.85em;text-indent:2em; }
+.p .ni { text-indent:0; }
+.p .c { text-indent:0;text-align:center; }
+.p .ts { text-indent:0;text-align:center;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;font-weight:300;color:var(--grey2);letter-spacing:.45em;margin:3em 0 2.5em; }
+.p .sb { text-indent:0;text-align:center;color:var(--grey2);font-size:.7rem;letter-spacing:.9em;margin:3.2em 0; }
+.p .th { color:var(--grey);font-size:.93em; }
+.p .kl { color:var(--red); }
+.p .lt {
+  text-indent:0;background:var(--paper2);border-left:3px solid var(--paper3);
+  padding:1.3rem 1.7rem;margin:.4em 0 2em;font-size:.93em;line-height:2.5;color:var(--grey);
+}
+.p .lt p{text-indent:0;margin-bottom:.7em;}
+.p .lt p:last-child{margin-bottom:0;}
+
+.cf { text-align:center;margin-top:5.5rem;padding-top:3rem;border-top:1px solid var(--paper3); }
+.cf-d { font-size:.68rem;letter-spacing:.65em;color:var(--grey2);margin-bottom:2.2rem; }
+.cf-btn {
+  background:none;border:1px solid var(--ink);color:var(--ink);
+  font-family:'Noto Sans TC',sans-serif;font-size:.68rem;letter-spacing:.3em;
+  padding:.8rem 2.6rem;cursor:pointer;transition:all .3s;
+}
+.cf-btn:hover{background:var(--ink);color:var(--paper);}
+.cf-note { margin-top:1.3rem;font-family:'Noto Sans TC',sans-serif;font-size:.62rem;color:var(--grey2);letter-spacing:.3em; }
+
+@media(max-width:560px){
+  .sh-nav{gap:0;}
+  .sh-btn{padding:.4rem .45rem;font-size:.55rem;}
+  .nbody{padding:80px 1.3rem 8rem;}
+}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<!-- ══ COVER ══ -->
+<div id="cover" onclick="open_()">
+  <div class="cv-grain"></div>
+  <div class="cv-light"></div>
+  <div class="cv-ring"></div><div class="cv-ring"></div><div class="cv-ring"></div>
+  <div class="cv">
+    <div class="cv-eye">長篇小說</div>
+    <div class="cv-t1">如果你沒有先走</div>
+    <div class="cv-t2">遲　初</div>
+    <div class="cv-rule"></div>
+    <div class="cv-meta">全文約一萬二千字</div>
+    <div class="cv-hint">點擊　開始閱讀</div>
+  </div>
+</div>
+
+<!-- ══ NOVEL ══ -->
+<div id="novel">
+  <header class="siteheader">
+    <span class="sh-title">如果你沒有先走</span>
+    <nav class="sh-nav">
+      <button class="sh-btn on" onclick="go(0)" id="b0">序</button>
+      <button class="sh-btn" onclick="go(1)" id="b1">一</button>
+      <button class="sh-btn" onclick="go(2)" id="b2">二</button>
+      <button class="sh-btn" onclick="go(3)" id="b3">三</button>
+      <button class="sh-btn" onclick="go(4)" id="b4">四</button>
+      <button class="sh-btn" onclick="go(5)" id="b5">五</button>
+      <button class="sh-btn" onclick="go(6)" id="b6">六</button>
+      <button class="sh-btn" onclick="go(7)" id="b7">七</button>
+      <button class="sh-btn" onclick="go(8)" id="b8">尾</button>
+    </nav>
+  </header>
+
+  <div class="nbody">
+
+<!-- 序章 -->
+<div class="cb on" id="c0">
+<div class="ch">
+  <div class="ch-lbl">序　章</div>
+  <div class="ch-ttl">那把還回去的傘</div>
+  <div class="ch-epi">
+    意難平的不是愛，<br>
+    是那個「如果」——<br>
+    如果當時說了，<br>
+    如果當時問了，<br>
+    如果那天沒有轉身走。
+  </div>
+</div>
+<div class="p">
+
+<p>後來葉知晚想，她這輩子最後悔的事，不是沒說出口的那句話。</p>
+
+<p>是那把傘。</p>
+
+<p>大三那年下雨，他把傘遞給她，自己撐著書包跑回宿舍。她在樓下等雨停，手裡攥著那把傘，想著是不是要傳訊息問他要不要來拿。後來她發了一條「你的傘我放管理室那邊了」，他回「好謝謝」，就這樣。</p>
+
+<p>她以為他不在意。</p>
+
+<p>他後來說，那把傘他取回來用了很多年，壞了才丟。</p>
+
+<p class="c kl" style="font-size:1.05em;letter-spacing:.2em;padding:1em 0">「我以為你知道。」</p>
+
+<p>他說。</p>
+
+<p class="c" style="color:var(--grey);font-size:.9em;letter-spacing:.15em;padding:.8em 0">「我不知道。一次都不知道。」</p>
+
+<p>她說。</p>
+
+<p>這個故事，從頭到尾都是兩個人各自以為對方知道的事。最殘忍的地方在於：他們都沒有說錯，只是都沒有說。</p>
+
+<p class="th">七年。就這樣錯過了七年。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="go(1)">開始閱讀　第一章</button>
+</div>
+</div>
+
+
+<!-- 第一章 -->
+<div class="cb" id="c1">
+<div class="ch">
+  <div class="ch-lbl">第　一　章</div>
+  <div class="ch-ttl">製圖室的燈</div>
+  <div class="ch-epi">
+    有些人，<br>
+    你第一次見到他，<br>
+    就覺得這個人<br>
+    值得你花時間。
+  </div>
+</div>
+<div class="p">
+
+<p class="ts">大二　九月　台北</p>
+
+<p>葉知晚第一次見到林澈，是在大二的製圖室。</p>
+
+<p>凌晨兩點，整棟樓只剩那間教室開著燈。她的建模軟體第十七次崩潰，她盯著空白的螢幕，心裡想，算了，死了算了。</p>
+
+<p>「你的版本太舊了。」</p>
+
+<p>她抬頭。一個她沒見過的男生站在她座位旁邊，指著她的電腦螢幕。「建模軟體，你用的是2009版本。學校電腦裡有新的，U11那排。」</p>
+
+<p>她沒說謝謝，只是拔起隨身碟跟他走。</p>
+
+<p>事後她想，那個「算了，死了算了」其實只是說說，是每個熬夜趕報告的人都會喃喃的廢話。但她還是記得那晚。林澈把新軟體的操作邏輯一步一步解釋給她聽，聲音低、不急，像是那件事值得他花時間。</p>
+
+<p>那年冬天，她開始注意他。</p>
+
+<p>她的「注意」是安靜的——她不是那種會主動開口的人。她觀察到他習慣坐靠門那排，喝黑咖啡不加糖，做設計稿的時候會咬筆桿。她把這些收在心裡，像收藏不打算展示的東西，只是覺得有比沒有好。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>大三春天，有一次下雨，他把傘借給她，自己撐著書包跑回宿舍。</p>
+
+<p>她在宿舍樓下等他雨停，手裡攥著他的傘，想著是不是要敲訊息問他要不要來拿。後來沒敲。她想他可能已經換了衣服，可能已經不在意，可能覺得一把傘根本無所謂。她發了一條「你的傘我放管理室那邊了」，他回「好謝謝」，就這樣。</p>
+
+<p class="th">她以為他不在意。</p>
+
+<p class="th">她不知道，他後來把那把傘取了回來，用了很多年。</p>
+
+<p class="sb">— ✦ —</p>
+
+<p>那年夏天，她有機會開口的，她知道。</p>
+
+<p>林澈畢業前夕，系上幾個人一起去吃飯，喝了點酒，散場時他說要送她回宿舍。夏夜的風很熱，路燈把他的影子拉得很長。走到一半他問：「你之後有什麼打算？」</p>
+
+<p>「就是……繼續讀吧。」她說。</p>
+
+<p>「嗯。」他說，「我去東京。我拿到那邊一個設計院的機會。」</p>
+
+<p>她說：「哦，那很好。」</p>
+
+<p>她沒說的是：我想問你，等你回來嗎，我可以等你嗎。</p>
+
+<p class="th">她什麼都沒說。</p>
+
+<p>她後來說服自己，那不是她的事。他也從沒說什麼，他只是一個借過她傘、在她軟體崩潰時順手幫了一把的人。她把那些心意摺好，壓進心裡最深的抽屜，告訴自己：沒事，沒事，有些人不是用來在一起的，是用來記著的。</p>
+
+<p>他去東京那天，她剛好在圖書館，沒送。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="go(2)">繼續閱讀　第二章</button>
+</div>
+</div>
+
+
+<!-- 第二章 -->
+<div class="cb" id="c2">
+<div class="ch">
+  <div class="ch-lbl">第　二　章</div>
+  <div class="ch-ttl">他回來了</div>
+  <div class="ch-epi">
+    有些人，<br>
+    你以為已經把他收好了，<br>
+    他一出現，<br>
+    你才發現什麼都沒有收好。
+  </div>
+</div>
+<div class="p">
+
+<p class="ts">二十七歲　台北</p>
+
+<p>時間過得很快，也過得不快。</p>
+
+<p>葉知晚碩士畢業之後進了一家中型設計公司，做視覺設計。工作穩定，同事和氣，她媽說你這樣也挺好的，不用操心。她知道那句話後面還跟著一句「快找個人定下來吧」，但她媽沒說，她也沒接。</p>
+
+<p>她談過一段感情，持續了八個月。對方是個溫和的男人，沒做錯任何事，葉知晚也知道自己沒受任何傷。她只是發現，談著談著，她心裡那個位置始終有個輪廓在，不是眼前這個人的形狀。</p>
+
+<p>她分的。說「對不起，我不是很確定我們合適」，對方也沒爭，似乎早就感覺到了。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>二十七歲那年，林澈回來了。</p>
+
+<p>她是從共同朋友的限動看到的。一張照片，東京的窗，背影，「回來了」三個字。她放下手機，繼續改稿。</p>
+
+<p>一週後，老朋友聚餐，他出現了。他比她記憶中的樣子多了點稜角，眼尾有細紋，但那種說話方式沒變——低、不急、字少但清楚。他們隔著桌子坐，說了幾句話，都是「你在哪裡做啊」「喔不錯」那種，沒有重量。</p>
+
+<p>她以為就這樣了。</p>
+
+<p class="sb">— ✦ —</p>
+
+<p>沒想到命運是很喜歡開玩笑的東西。</p>
+
+<p>一個月後，她接了一個案子，對接的建築事務所是他新加入的那間。她第一次在會議室看到他的名字出現在對接名單上，停頓了三秒，然後繼續滑下去，什麼都沒說。</p>
+
+<p>第一次對接，他似乎也頓了一下，但很快就進入工作狀態：「這個立面的配色我們這邊有限制，你先看一下規範。」</p>
+
+<p>她說好，然後就是好。</p>
+
+<p>他們開始因為工作固定聯繫。訊息來來去去，都是稿子、修改意見、截止日期。他回訊息很快，不廢話，葉知晚覺得這樣也好，乾淨，不需要開口問說你還記得我嗎，或者那把傘之後你怎麼樣了。</p>
+
+<p>有一次改稿改到晚上十一點，他傳來一條：「你晚飯吃了嗎。」</p>
+
+<p>她看著那條訊息，想了很久，回：「吃了。」</p>
+
+<p class="th">她沒有吃。</p>
+
+<p class="th">後來她想，那個「吃了」也許是她這輩子最後悔的一個謊。因為如果她說沒有，他可能會說那我也還沒，要不要一起隨便吃什麼。或者他可能只是問問，什麼都不會發生。她永遠不知道。</p>
+
+<p class="th">她只是不敢賭。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>那年冬天，她開始意識到一件事：林澈在工作以外也偶爾找她說話了。</p>
+
+<p>不是特別明顯的那種。一篇他看到的設計文章，「你看過這個嗎」；某個新開的咖啡廳，「你那邊附近，聽說不錯」；有一次凌晨他在熬圖，問她「你用什麼方式讓自己不睡著」，她說「喝很燙的水」，他發了個「哦」，半分鐘後說「試了，有效」。</p>
+
+<p>她告訴自己不要多想。</p>
+
+<p class="th">那種不要多想是需要刻意的——她每次看到他的名字出現在螢幕上都要先讓自己平靜三秒，才去讀訊息。她害怕自己一旦開始想，就停不下來，就又開始等那些永遠不會到來的東西。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="go(3)">繼續閱讀　第三章</button>
+</div>
+</div>
+
+
+<!-- 第三章 -->
+<div class="cb" id="c3">
+<div class="ch">
+  <div class="ch-lbl">第　三　章</div>
+  <div class="ch-ttl">展覽那晚</div>
+  <div class="ch-epi">
+    有些話，<br>
+    你想說的時候，<br>
+    一千個理由讓你閉嘴，<br>
+    但歸根到底只有一個——<br>
+    你不知道要把自己交出去，<br>
+    萬一沒有人接呢。
+  </div>
+</div>
+<div class="p">
+
+<p class="ts">二十七歲　冬　台北</p>
+
+<p>十一月，公司有個聯合展覽，她跟林澈的事務所都有作品參展。</p>
+
+<p>開幕那晚她到的比較早，在自己的展版前站了一會兒，他從人群裡過來，站到她旁邊，說：「你那個配色最後選的是第二版。」</p>
+
+<p>「對。」</p>
+
+<p>「我當時說第一版比較好。」</p>
+
+<p>「你說了，但我客戶喜歡第二版。」</p>
+
+<p>他沉默了一下，然後說：「你說得對。」</p>
+
+<p>她沒想到他會說這句話。她轉過頭去看他，他正在看那幅展版，側臉，燈光打下來，她想，如果我現在說我喜歡你，他會怎麼樣。</p>
+
+<p class="th">她沒說。</p>
+
+<p class="th">她沒說的原因有一千個：不確定、不合時、怕搞壞這段工作關係、怕他不是那個意思、怕他說好謝謝然後從此尷尬。但歸根到底只有一個：她不知道要把自己交出去，萬一沒有人接呢。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>那晚結束，他幫她叫了計程車，說：「路上小心。」</p>
+
+<p>她坐進車裡，看他轉身走進人群，手機亮起，她以為是他，但是她媽傳來問吃飯的訊息。</p>
+
+<p>她把手機放下，靠上車窗，城市的燈光從玻璃上流過去。</p>
+
+<p class="sb">— ✦ —</p>
+
+<p class="ts">翌年　三月</p>
+
+<p>三月，她第一次見到宋聽雨。</p>
+
+<p>不是什麼了不起的場合——林澈的事務所喬遷，她被拉去喝了一杯。宋聽雨是他的同事，設計師，乾淨俐落，說話很直，見面就說：「我聽林澈說過你，你那個展版我也看到了，配色很厲害。」</p>
+
+<p>葉知晚說謝謝，然後觀察她和林澈的距離。</p>
+
+<p>她沒發現什麼，但也許是因為她不敢仔細看。</p>
+
+<p>後來她偶爾會在林澈的限動裡看到宋聽雨——兩個人都在的飯局，或者他轉發她的作品，說「同事的，很好」。葉知晚每次看到都有一種說不清的感覺，像是踩到不穩的地面，趕緊收腳，不確定自己是否走錯了地方。</p>
+
+<p class="th">她問過自己：你是在吃醋嗎。</p>
+
+<p class="th">她不知道。她只知道每次看到宋聽雨的名字，她就習慣性地關掉介面，告訴自己沒你的事。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>五月，有一次她跟林澈在電話裡改稿，講完之後他說：「下次要不要找個時間當面對稿，訊息太慢了。」</p>
+
+<p>她說好。</p>
+
+<p>他說：「那個……宋聽雨說她也有個案子可能要找你合作，她到時候可以一起。」</p>
+
+<p>葉知晚停了一秒，說：「好啊。」</p>
+
+<p>她掛了電話，坐在椅子裡很久，試圖確認那個「好啊」說出口的時候，她的聲音有沒有變。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="go(4)">繼續閱讀　第四章</button>
+</div>
+</div>
+
+
+<!-- 第四章 -->
+<div class="cb" id="c4">
+<div class="ch">
+  <div class="ch-lbl">第　四　章</div>
+  <div class="ch-ttl">那個她沒有說出口的決定</div>
+  <div class="ch-epi">
+    離開，<br>
+    是她第一次<br>
+    主動替自己做一個決定，<br>
+    不是等，不是看，<br>
+    不是把那個說不出口的話<br>
+    再往心裡壓一層。
+  </div>
+</div>
+<div class="p">
+
+<p class="ts">二十八歲　六月</p>
+
+<p>六月，下雨的午後，林澈傳來一條訊息：「我今天下午在你公司附近，要不要喝個咖啡，對一下那個稿。」</p>
+
+<p>她回：「好。」</p>
+
+<p>那是她這輩子說過最多次的一個字，她後來想。好。好。她一直說好，但從來沒有說那個更難說的。</p>
+
+<p>那天下午他們在一家他挑的咖啡廳坐了兩個多小時。改完稿之後，他把電腦闔上，端著咖啡杯看著窗外，說：「你還記得我們大三的時候，那個聯合報告？」</p>
+
+<p>她記得。那個學期的聯合報告，她和林澈被分到同一組，前後修改了快三個版本，最後做出來的東西讓指導教授說了一句「這組是認真的」。</p>
+
+<p>「記得，怎麼了？」</p>
+
+<p>「沒什麼，我今天路過那個學校附近，突然想到。」他說，「那時候覺得把那個做好是很重要的事。」</p>
+
+<p>她沒說話。她想問，那現在呢，你覺得現在什麼是重要的事。她沒問。</p>
+
+<p>她喝了一口咖啡，說：「那個報告最後的模型是你做的，我只是配色。」</p>
+
+<p>他說：「你配的那個色讓整個模型活起來，是你的功勞。」</p>
+
+<p>葉知晚低下頭，假裝在看桌上的稿子。她那時候如果抬起頭，就會看到他在看她。但她沒有抬頭。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>他們走出去的時候，雨還沒停。他在門口說「等等」，轉身進去跟店員借了一把傘，遞給她。</p>
+
+<p>她接了，說：「你呢？」</p>
+
+<p>「公司那邊有，你拿著。」</p>
+
+<p>她站在那把傘下，看他冒雨走開，想起大三那次，那把還回去的雨傘。</p>
+
+<p>她往他走的方向跑了兩步，但又停下來。</p>
+
+<p class="kl">那個停下來，她後來很多年都沒有辦法原諒自己。</p>
+
+<p class="sb">— ✦ —</p>
+
+<p class="ts">七月</p>
+
+<p>七月，宋聽雨找她約了合作的那頓飯。兩個人單獨吃，林澈沒來。宋聽雨說：「他最近很忙，在跑一個大案子。」然後順口說了一句，「也可能是因為要跟家裡談那件事，很煩。」</p>
+
+<p>葉知晚說：「什麼事？」</p>
+
+<p>宋聽雨停了一下，說：「他家裡一直希望他結婚，最近壓力比較大，說不定要回去相親。」</p>
+
+<p>她說完就換了話題，葉知晚沒有再問，但那個「相親」兩個字從那晚開始，像釘子一樣釘在她心裡。</p>
+
+<p>她那晚躺在床上，把事情理了一遍：無論哪種情況，和她都沒有關係。從來都沒有關係。</p>
+
+<p>她在黑暗裡躺著，把所有模稜兩可的事情都解讀成了「對，你就是不重要」。</p>
+
+<p class="sb">·　·　·</p>
+
+<p class="ts">八月</p>
+
+<p>八月，她接到一個機會：上海一家設計公司，缺資深視覺設計師，獵頭找到她。薪水比現在高很多，發展空間也更大。</p>
+
+<p>她告訴自己：如果你不走，你就會一直這樣。一直在等一件不會發生的事。一直把心裡那個位置留給他，然後繼續過那種表面正常、裡面什麼都沒有的生活。</p>
+
+<p>你二十九歲了，你不能繼續這樣了。</p>
+
+<p>她接了那個offer。</p>
+
+<p>她沒有告訴林澈，沒有告訴他們共同的朋友，只是在離職前三週，在工作對接的訊息群裡說「這個案子我要交接，月底前我會把所有資料整理好」。</p>
+
+<p>林澈私訊她：「你要離職？」</p>
+
+<p>她說：「對，去上海。」</p>
+
+<p>他沉默了很長時間，長到她以為他不打算回了，才看到：「什麼時候走？」</p>
+
+<p>「下個月初。」</p>
+
+<p>又是很長時間的沉默。</p>
+
+<p>「那挺好的。」他最後說，「上海那邊發展更好。」</p>
+
+<p>葉知晚看著那條訊息，把手機翻過去，扣在桌上，像蓋住什麼東西。</p>
+
+<p>離開前，她去了一次他常去的那個咖啡廳，一個人。坐在他們上次坐的那個位子，窗邊，看外面的街。她點了一杯黑咖啡，不加糖，他喝的那種。她想，如果時間重來一次，她會不會開口說。</p>
+
+<p>她想了很久，得出的結論是：也許還是不會。不是因為她懦弱，是因為她真的不確定說了之後，那個人有沒有辦法接住她說的那些話。而她已經太清楚地知道，等不到回應的感情是什麼感覺——她熟悉那個感覺熟悉了七年，那種重量，她不想再加一次。</p>
+
+<p>所以她選擇離開。</p>
+
+<p>她喝完那杯咖啡，走出去。街上的風很熱，像那年夏天他說要去東京之前的那個夜晚。</p>
+
+<p>她去了上海。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="go(5)">繼續閱讀　第五章</button>
+</div>
+</div>
+
+
+<!-- 第五章 -->
+<div class="cb" id="c5">
+<div class="ch">
+  <div class="ch-lbl">第　五　章</div>
+  <div class="ch-ttl">她在上海，他在台北</div>
+  <div class="ch-epi">
+    有些人，<br>
+    你不知道他在惦記你，<br>
+    他也不知道你在惦記他，<br>
+    就這樣，<br>
+    各自惦記著，<br>
+    各自不說。
+  </div>
+</div>
+<div class="p">
+
+<p class="ts">上海　第一年</p>
+
+<p>上海的生活比她想像的忙。</p>
+
+<p>新公司節奏很快，頭三個月她幾乎沒有停下來的時間，晚上回到出租屋倒頭就睡，連多餘的念頭都很少有。她以為這就是她想要的——用忙把那個形狀填滿。</p>
+
+<p>偶爾還是有。翻到以前和他共事的稿子，或者看到哪個設計用了一個他慣用的手法，或者夢裡出現那個製圖室的燈光。她醒來，對著天花板，等自己把那個感覺壓回去，然後爬起來繼續活。</p>
+
+<p>她沒有再聯繫他。他也沒有找她。</p>
+
+<p class="th">她告訴自己：這樣就對了，這樣才是結束。</p>
+
+<p class="sb">·　·　·</p>
+
+<p class="ts">十月　東京出差</p>
+
+<p>十月，她去東京出差，順道見了幾個大學時期的舊朋友。席間喝了一點，話也多了一點。一個朋友說：「對了，你知道嗎，林澈——」</p>
+
+<p>她說：「不知道，我們沒什麼聯繫了。」</p>
+
+<p>朋友說：「他把那個案子放棄了，你知道嗎，去年他拿到一個很大的文化建築案，做到一半，業主那邊出了問題，專案爛尾，他很難熬了一陣。」</p>
+
+<p>葉知晚說：「不知道。」</p>
+
+<p>她確實不知道。</p>
+
+<p>她後來回到飯店，拿出手機，去找他的社群媒體，才發現他很久沒有更新了。最後一條是那年八月，一張圖，東京鐵塔，沒有文字。那是她離開之後兩週。</p>
+
+<p class="th">她不知道那意味著什麼，或者也許什麼都不意味著，她只是盯著那個日期看了很久。</p>
+
+<p class="sb">— ✦ —</p>
+
+<p class="ts">十二月</p>
+
+<p>十二月，葉知晚收到宋聽雨的訊息。她們偶爾還保持聯繫，聊工作，偶爾推薦展覽。這次宋聽雨說：「有空嗎，我最近要去上海出差，可以見一下。」</p>
+
+<p>她說好。</p>
+
+<p>她們在一家日料店見面，宋聽雨狀態很好，說新接了幾個案子，事業正在起步。葉知晚說上海挺好，習慣了，有時候會想起台北但也過得下去。</p>
+
+<p>喝了酒之後，宋聽雨說了一句：「你走了之後，他難了很久。」</p>
+
+<p>葉知晚沒說話。</p>
+
+<p>「他跟我說，他覺得他可能錯過了什麼。」宋聽雨說，「他說你是他認識過最——他沒說完，就停了，說算了。」</p>
+
+<p>「他為什麼跟你說這個？」</p>
+
+<p>宋聽雨安靜了一下，說：「你大概誤會過我們吧。」她說得很平靜，不是指責，「我跟他是有很短的一段，但那是七年前，在東京，很快就結束了。他回台北之後，我也是之後才加入那間事務所的，是工作關係，沒有別的。」</p>
+
+<p>葉知晚盯著面前的酒杯。</p>
+
+<p>「但那不重要，」宋聽雨說，「重要的是你為什麼走。」</p>
+
+<p>葉知晚說：「因為我覺得沒有理由留。」</p>
+
+<p>宋聽雨說：「他以為你過得很好，所以沒有追。」</p>
+
+<p>葉知晚說：「他沒有追，是因為他沒有想追。」</p>
+
+<p>宋聽雨搖搖頭，但沒有繼續說。</p>
+
+<p>那頓飯在一種奇怪的平靜裡結束。葉知晚走到外面，站在冬天的街上，試圖整理那些話。她覺得宋聽雨可能是好意，但那些話改變不了什麼。哪怕林澈真的有什麼，也已經是過去式。她在上海，有自己的工作，自己的生活，那些沒說出口的話已經跟那把傘一起，折疊起來，放到最深的地方了。</p>
+
+<p class="th">她以為自己已經走過了。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="go(6)">繼續閱讀　第六章</button>
+</div>
+</div>
+
+
+<!-- 第六章 -->
+<div class="cb" id="c6">
+<div class="ch">
+  <div class="ch-lbl">第　六　章</div>
+  <div class="ch-ttl">回台北</div>
+  <div class="ch-epi">
+    有些地方，<br>
+    你以為你回去了，<br>
+    只是懷舊，<br>
+    直到你在那裡看見他，<br>
+    你才知道，<br>
+    你根本從來沒有離開過。
+  </div>
+</div>
+<div class="p">
+
+<p class="ts">春節　台北</p>
+
+<p>春節前，她回台北。她媽很高興，做了一桌菜，她弟帶了女友回來，一家人熱熱鬧鬧，葉知晚在飯桌上笑著，說一切都好，上海挺好，工作也好。</p>
+
+<p>初三，她去了一趟她們大學附近走走，說是懷舊，其實她自己也不知道為什麼去。</p>
+
+<p>她走到那個製圖室的樓下，看著三樓的窗子，想，你在這裡消耗了多少個深夜，但有哪一個，哪一個你真的做了什麼，讓自己少遺憾一點？</p>
+
+<p>她站在那裡，外套的風帽被風吹起來，她把它撥下去，轉身要走。</p>
+
+<p>然後她看到他了。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>林澈從對面那棟樓的門走出來，低著頭，手插在外套口袋裡，往她這個方向走。他抬起頭，兩個人相距不到十步，停下來。</p>
+
+<p>沉默了大概三秒。</p>
+
+<p>她說：「你在這邊？」</p>
+
+<p>他說：「來找一個老師簽一份東西，他辦公室在這棟。」他停了一下，「你呢？」</p>
+
+<p>「走走。」她說。</p>
+
+<p>他說：「哦。」</p>
+
+<p>又是沉默。那種沉默裡有七年的話，但沒有一句話出聲。</p>
+
+<p>他說：「最近怎麼樣，上海。」</p>
+
+<p>她說：「還好。很忙，但適應了。」</p>
+
+<p>他說：「好。」</p>
+
+<p>她說：「你呢。」</p>
+
+<p>他說：「我最近在接一個住宅案，小一點，但有意思。」</p>
+
+<p>她說：「那挺好的。」</p>
+
+<p>然後就沒有了。那個對話到這裡就沒有了。</p>
+
+<p>她看著他，他也看著她，兩個人站在那個地方，頭頂是熟悉的樹，腳下是熟悉的地磚，時間按了靜音，等著其中一個人說點什麼不一樣的東西。</p>
+
+<p>她想起大三，她想起那把傘，她想起他說「你配的那個色讓整個模型活起來」，她想起那晚展覽他站在她旁邊，她想起七月那頓她一個人去的咖啡廳，那杯不加糖的黑咖啡。</p>
+
+<p>她張了張嘴。</p>
+
+<p class="th">她想說：我來這裡是因為想你。我去上海是因為太想你了所以才逃走。你讓我等了七年，我沒辦法繼續等了。</p>
+
+<p>她說的是：「那你先去忙，我也要走了，等等跟我家人有約。」</p>
+
+<p>他說：「好，路上小心。」</p>
+
+<p>她點了點頭，轉身走了。</p>
+
+<p>走了大概五十步，她停下來，回頭看。</p>
+
+<p>他還站在那裡。他在看她。</p>
+
+<p>她看著他，他看著她，那個對視持續了大概四秒，然後她轉過頭，繼續走，走到街角，轉彎，不見了。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="go(7)">繼續閱讀　第七章</button>
+</div>
+</div>
+
+
+<!-- 第七章 -->
+<div class="cb" id="c7">
+<div class="ch">
+  <div class="ch-lbl">第　七　章</div>
+  <div class="ch-ttl">說出口</div>
+  <div class="ch-epi">
+    等待本身不是問題，<br>
+    問題是，<br>
+    等的人從來不說<br>
+    自己在等，<br>
+    被等的人從來不知道<br>
+    自己被等著。
+  </div>
+</div>
+<div class="p">
+
+<p class="ts">四月　上海</p>
+
+<p>她回上海之後，那個四秒一直在她腦子裡打轉。</p>
+
+<p>她試圖解讀：他站在那裡看我，是什麼意思。是習慣性的目送，還是有什麼話沒說完，還是什麼都不是，只是她又一次自作多情？</p>
+
+<p>她想了三天，說服自己：算了，就算那個眼神有什麼，那又怎樣，你已經在上海，你已經走了，你不能因為一個路上的碰見就把這半年的一切推翻。</p>
+
+<p>她把那件事壓下去，繼續工作，繼續生活。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>四月，林澈傳了一條訊息。</p>
+
+<p>沉寂了大半年之後，突然：「你最近還好嗎。」</p>
+
+<p>她看到的時候愣了一下，打了幾個字又刪掉，最後回了：「還好，你呢。」</p>
+
+<p>他說：「也還好。那個住宅案做完了，挺有意思。」</p>
+
+<p>她說：「好事。」</p>
+
+<p>他說：「我最近有想事情。」</p>
+
+<p>她盯著那句話，心跳快了一拍。想說什麼？</p>
+
+<p>他說：「年初在學校那邊碰到你，我覺得有些話我一直沒說清楚。」</p>
+
+<p>葉知晚把手機放下，去倒了一杯水，喝了，又拿回來。</p>
+
+<p>她回：「說吧。」</p>
+
+<p>他打了很長時間，那個「正在輸入」的符號出現又消失，出現又消失，葉知晚數了一下，消失了四次。</p>
+
+<p>最後他說：「你去上海之前，我其實想說的是，我不希望你走。但我沒有理由要你留，你有你的發展，我不能因為我自己的事拉著你。所以我說了挺好的。」</p>
+
+<p>葉知晚的手指停在螢幕上。</p>
+
+<p>她看著那段話，看了很久。</p>
+
+<p>然後她打出了這一生裡第一次、也是唯一一次清楚的回答：</p>
+
+<p class="c kl" style="font-size:.98em;letter-spacing:.12em;padding:1.2em 1em;line-height:2.4">「我去上海是因為我喜歡你，喜歡了很多年，但我不知道你是什麼意思，我也不確定我說了你能不能接，所以我選擇走。」</p>
+
+<p>她送出去，手機放在桌上，人走到窗邊去，看外面的上海，燈火很亮，很陌生，和台北不一樣。</p>
+
+<p>訊息跳出來的聲音她聽到了，但她沒有立刻去看。她讓那個聲音響著，讓那個答案在那裡等著，多等一分鐘，她覺得那一分鐘是這七年裡她給自己的唯一喘息。</p>
+
+<p>然後她拿起手機。</p>
+
+<p>他說：「我知道。」</p>
+
+<p>她往後退了一步，後背靠上牆。</p>
+
+<p>他說：「我從那晚展覽就知道了，我以為我能找到合適的時機說，但我一直在等，等一個我覺得確定的時刻，一直沒等到。然後你走了。」</p>
+
+<p>她閉上眼睛。</p>
+
+<p>他說：「你借走的那把傘，我記了很久。」</p>
+
+<p>她想起那把傘。她還到管理室那邊，他說好謝謝，她以為他不在意，他說他記了很久。</p>
+
+<p>她想起大三的那個夜晚，她沒有傳那條「要不要來拿傘」的訊息。她想如果她傳了，也許就不一樣了。但她沒有傳，他沒有來，七年，兩個人各自在等一個對方先說話的時刻，而那個時刻從來沒有來。</p>
+
+<p>她說：「那我們現在怎麼辦。」</p>
+
+<p>他沉默了很久，說：「我不知道。你在上海，我在台北，我不知道怎麼辦。」</p>
+
+<p>她說：「我也不知道。」</p>
+
+<p>然後那個對話就這樣停了。不是誰傳了最後一條，也不是誰先離線，是兩個人都不說話了，螢幕就那樣亮著，那些話漂在上面，什麼問題都沒有解決，只是說出來了，那些一直沉在水底的東西，終於浮上來了，然後就這樣漂在那裡，兩個人看著它，不知道怎麼撈。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="go(8)">繼續閱讀　尾聲</button>
+</div>
+</div>
+
+
+<!-- 尾聲 -->
+<div class="cb" id="c8">
+<div class="ch">
+  <div class="ch-lbl">尾　聲</div>
+  <div class="ch-ttl">這一次的好</div>
+  <div class="ch-epi">
+    沒有芭樂，沒有奇蹟，<br>
+    只是兩個人各自錯過了七年，<br>
+    然後在太晚又不算最晚的地方，<br>
+    說了那些早該說的話。
+  </div>
+</div>
+<div class="p">
+
+<p>葉知晚後來把那段對話想了很多次。</p>
+
+<p>不是後悔，是那種說不清的感覺，像是把一個藏了很久的東西拿出來透了個氣，又放回去了，但位置不一樣了，沒有原來那麼窒息，但也不知道算是什麼。</p>
+
+<p>她沒有回台北，他也沒有來上海。他們開始偶爾傳訊息，不再只是工作，而是那種很日常的——「你今天吃什麼」「最近看了什麼書」「台北在下雨」。她回他，他回她，輕巧，沒有重量，像是把之前說出口的話晾了一晾，等它乾了再來看是什麼形狀。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>六月，他說：「我有個出差機會，可以選上海，我在考慮。」</p>
+
+<p>她說：「考慮的是上海還是其他地方？」</p>
+
+<p>他說：「考慮的是你在不在上海。」</p>
+
+<p>她盯著那句話看了很久，然後說：「我在。」</p>
+
+<p>他說：「那就上海。」</p>
+
+<p class="sb">— ✦ —</p>
+
+<p>他來了，兩個人在她住的地方附近吃了一頓飯，走回去的路上，路燈把兩個人的影子拉長，她說：「我想到一件事。」</p>
+
+<p>「什麼？」</p>
+
+<p>「大三你去東京之前，那個夜晚，你送我回去，我想說讓我等你，但沒說。」她看著前面，「我一直以為你不知道，後來你說你從展覽那晚就知道我的感覺，但那更早，那個夜晚，你知道嗎？」</p>
+
+<p>他走了幾步，說：「知道。」</p>
+
+<p>她站住，「那你為什麼——」</p>
+
+<p>他也站住，「我想說，但我以為我去東京，你也許就會忘了，也許就不需要那句話。」他說，「我以為你會往前走，不需要等我。」</p>
+
+<p>葉知晚站在那裡，想笑，但那個笑沒有出來。</p>
+
+<p>「我等了七年，」她說，聲音很平，「你以為我不會等。」</p>
+
+<p>「我知道，」他說，「我錯了。」</p>
+
+<p>那條街沒有其他人，燈光很靜，她站在那裡，七年的東西在心裡走了最後一圈，走完了，就放下了。不是大喜，不是大悲，是那種把積了七年的水放乾之後的那種空——不是什麼都沒有了，是有了底，可以站了。</p>
+
+<p>她說：「那現在怎麼辦。」</p>
+
+<p>他說：「現在就不一樣了。」</p>
+
+<p>她看著他，「你確定？」</p>
+
+<p>他說：「從製圖室那晚就確定，只是我太慢了。」</p>
+
+<p>那晚沒有吻，沒有任何浪漫的舉動，她走到自己那棟樓的門口，他在後面說：「明天早上我還有個會，但下午有空，你帶我去你上海常去的地方吃飯。」</p>
+
+<p>她說：「好。」</p>
+
+<p class="th">那個好，是這一次說出口的，帶著意思的，讓她知道自己在說什麼的。</p>
+
+<p class="sb">— ✦ —</p>
+
+<p>林澈後來說，那把傘他找了很久。不是真的找，是大學畢業整理宿舍的時候，突然想起，那把傘他放在管理室那，後來重新取回來，用了很多年，壞了才丟。</p>
+
+<p>葉知晚說：「那你應該早說。」</p>
+
+<p>他說：「說什麼，說我把你還的傘又拿回來用？」</p>
+
+<p>她說：「說你沒有不在意。」</p>
+
+<p>他沉默了一下，說：「我以為你知道。」</p>
+
+<p>她說：「我不知道。我從來不知道，一次都不知道。」</p>
+
+<p>他說：「我知道了，我以後說清楚。」</p>
+
+<p>她說好。</p>
+
+<p class="th">這一次的好，她說出口的時候，聽見自己的聲音是實的，不是那種把什麼東西往下壓的聲音，是從底下長出來的，踩得住的那種。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>窗外台北的夜還是熱，像她記憶裡每一個說不清楚的夏天，但她現在坐在這裡，那個說不清楚的東西說清楚了，七年之後，終於說清楚了。</p>
+
+<p>意難平不是因為他們沒有在一起。</p>
+
+<p class="th">意難平是：如果那把傘，她開口問了；如果那個夜晚，她說了讓我等你；如果那頓飯，她說我沒吃——那七年，可以不必那麼沉。</p>
+
+<p style="margin-top:3.5em;margin-bottom:0;text-indent:0;text-align:center;color:var(--grey);font-size:.88em;letter-spacing:.25em;line-height:2.8">
+  如果有來生，<br>
+  她要在那個製圖室的深夜，<br>
+  在他說完軟體操作的那一秒，<br><br>
+  <span style="color:var(--red);font-size:1.1em;letter-spacing:.2em">說：謝謝，你叫什麼名字？</span><br><br>
+  然後不等他說——<br>
+  先說：<br><br>
+  <span style="color:var(--ink);letter-spacing:.18em">我叫葉知晚，<br>以後你的傘，不用還的。</span>
+</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦　　✦　　✦</div>
+  <div style="font-family:'Noto Sans TC',sans-serif;font-size:.72rem;color:var(--grey);letter-spacing:.5em;text-align:center;margin-bottom:2rem">全　文　完</div>
+  <button class="cf-btn" onclick="go(0)">從頭閱讀</button>
+  <div class="cf-note">如果你沒有先走</div>
+</div>
+</div>
+
+  </div>
+</div>
+
+<script>
+let cur = 0;
+function open_() {
+  document.getElementById('cover').style.display = 'none';
+  document.getElementById('novel').style.display = 'block';
+  window.scrollTo(0,0);
+}
+function go(n) {
+  document.getElementById('c'+cur).classList.remove('on');
+  document.getElementById('b'+cur).classList.remove('on');
+  cur = n;
+  document.getElementById('c'+n).classList.add('on');
+  document.getElementById('b'+n).classList.add('on');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+window.addEventListener('scroll', () => {
+  if (!document.getElementById('novel').style.display || document.getElementById('novel').style.display === 'none') return;
+  const s = window.scrollY;
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  document.getElementById('prog').style.width = (h > 0 ? s/h*100 : 0) + '%';
+});
+</script>
+</body>
+</html>
