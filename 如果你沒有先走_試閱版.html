@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>如果你沒有先走｜試閱版</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400&display=swap');
+
+:root {
+  --ink: #1a1714;
+  --paper: #f6f1e8;
+  --paper2: #ede7d8;
+  --paper3: #e3dccb;
+  --red: #7c1f1f;
+  --red2: #a86060;
+  --gold: #907030;
+  --grey: #78706a;
+  --grey2: #a89f98;
+  --night: #1c1814;
+  --night2: #252018;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--night); font-family:'Noto Serif TC',serif; color:var(--ink); overflow-x:hidden; }
+
+#prog { position:fixed; top:0; left:0; height:2px; background:var(--gold); z-index:999; transition:width .12s; opacity:.7; }
+
+/* ── COVER ── */
+#cover {
+  min-height:100vh; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:var(--night); position:relative; overflow:hidden; cursor:pointer;
+}
+.cv-grain {
+  position:absolute; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+  background-size:200px; pointer-events:none;
+}
+.cv-light {
+  position:absolute; width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, #3a300820 0%, transparent 70%);
+  animation:cl 9s ease-in-out infinite;
+}
+@keyframes cl { 0%,100%{transform:scale(.95);opacity:.5} 50%{transform:scale(1.1);opacity:1} }
+.cv-ring {
+  position:absolute; border-radius:50%; border:1px solid #ffffff08;
+  animation:cr 10s ease-in-out infinite;
+}
+.cv-ring:nth-child(3){width:500px;height:500px;animation-delay:0s;}
+.cv-ring:nth-child(4){width:350px;height:350px;border-color:#ffffff0c;animation-delay:-3s;}
+.cv-ring:nth-child(5){width:200px;height:200px;border-color:#ffffff12;animation-delay:-6s;}
+@keyframes cr{0%,100%{transform:scale(.97);opacity:.5}50%{transform:scale(1.03);opacity:1}}
+
+.cv { position:relative;z-index:2;text-align:center;animation:crise 2s cubic-bezier(.16,1,.3,1) forwards;opacity:0;transform:translateY(24px); }
+@keyframes crise{to{opacity:1;transform:translateY(0)}}
+
+.cv-eye { font-family:'Noto Sans TC',sans-serif;font-size:.65rem;font-weight:300;letter-spacing:.55em;color:var(--gold);margin-bottom:2rem;text-transform:uppercase; }
+.cv-t1 { font-size:clamp(1.8rem,4.5vw,2.9rem);font-weight:500;color:#f0ead8;line-height:1.7;letter-spacing:.18em; }
+.cv-t2 { font-size:clamp(.8rem,1.8vw,.95rem);font-weight:300;color:var(--red2);letter-spacing:.4em;margin-top:.9rem; }
+.cv-rule { width:44px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:2.6rem auto; }
+.cv-meta { font-family:'Noto Sans TC',sans-serif;font-size:.68rem;font-weight:300;color:var(--grey);letter-spacing:.3em;line-height:2.6; }
+.cv-hint { margin-top:3.5rem;font-family:'Noto Sans TC',sans-serif;font-size:.6rem;letter-spacing:.6em;color:#3e3830;animation:ch 3s ease-in-out infinite;animation-delay:2s; }
+@keyframes ch{0%,100%{opacity:0}50%{opacity:1}}
+
+/* ── NOVEL ── */
+#novel { display:none; background:var(--paper); min-height:100vh; }
+
+.siteheader {
+  position:fixed;top:2px;left:0;right:0;height:50px;
+  background:rgba(28,24,20,.96);backdrop-filter:blur(8px);
+  border-bottom:1px solid #ffffff06;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;padding:0 2rem;
+}
+.sh-title { font-family:'Noto Sans TC',sans-serif;font-size:.65rem;font-weight:300;color:var(--grey);letter-spacing:.2em; }
+.sh-nav { display:flex;gap:.2rem; }
+.sh-btn {
+  background:none;border:none;font-family:'Noto Sans TC',sans-serif;
+  font-size:.6rem;letter-spacing:.1em;color:#504840;padding:.4rem .7rem;
+  cursor:pointer;transition:color .2s;border-bottom:1.5px solid transparent;
+}
+.sh-btn:hover{color:var(--grey2);}
+.sh-btn.on{color:var(--gold);border-bottom-color:var(--gold);}
+
+.nbody { max-width:680px;margin:0 auto;padding:88px 2rem 10rem; }
+
+.cb { display:none; }
+.cb.on { display:block;animation:pin .65s cubic-bezier(.16,1,.3,1) forwards;opacity:0; }
+@keyframes pin{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+.ch { text-align:center;padding:2.5rem 0 3.5rem;border-bottom:1px solid var(--paper3);margin-bottom:3.8rem; }
+.ch-lbl { font-family:'Noto Sans TC',sans-serif;font-size:.62rem;font-weight:300;letter-spacing:.55em;color:var(--gold);margin-bottom:1.3rem; }
+.ch-ttl { font-size:clamp(1.25rem,2.8vw,1.8rem);font-weight:500;color:var(--ink);letter-spacing:.13em;line-height:1.75;margin-bottom:1.8rem; }
+.ch-epi { display:inline-block;font-size:.8rem;font-weight:300;color:var(--grey);letter-spacing:.1em;line-height:2.4;padding:1rem 1.8rem;border-left:2px solid var(--paper3);text-align:left; }
+
+.p { font-size:clamp(.95rem,1.9vw,1.04rem);line-height:2.35;letter-spacing:.06em;color:var(--ink); }
+.p p { margin-bottom:1.85em;text-indent:2em; }
+.p .ni { text-indent:0; }
+.p .c { text-indent:0;text-align:center; }
+.p .ts { text-indent:0;text-align:center;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;font-weight:300;color:var(--grey2);letter-spacing:.45em;margin:3em 0 2.5em; }
+.p .sb { text-indent:0;text-align:center;color:var(--grey2);font-size:.7rem;letter-spacing:.9em;margin:3.2em 0; }
+.p .th { color:var(--grey);font-size:.93em; }
+.p .kl { color:var(--red); }
+.p .lt {
+  text-indent:0;background:var(--paper2);border-left:3px solid var(--paper3);
+  padding:1.3rem 1.7rem;margin:.4em 0 2em;font-size:.93em;line-height:2.5;color:var(--grey);
+}
+.p .lt p{text-indent:0;margin-bottom:.7em;}
+.p .lt p:last-child{margin-bottom:0;}
+
+.cf { text-align:center;margin-top:5.5rem;padding-top:3rem;border-top:1px solid var(--paper3); }
+.cf-d { font-size:.68rem;letter-spacing:.65em;color:var(--grey2);margin-bottom:2.2rem; }
+.cf-btn {
+  background:none;border:1px solid var(--ink);color:var(--ink);
+  font-family:'Noto Sans TC',sans-serif;font-size:.68rem;letter-spacing:.3em;
+  padding:.8rem 2.6rem;cursor:pointer;transition:all .3s;
+}
+.cf-btn:hover{background:var(--ink);color:var(--paper);}
+.cf-note { margin-top:1.3rem;font-family:'Noto Sans TC',sans-serif;font-size:.62rem;color:var(--grey2);letter-spacing:.3em; }
+
+/* ── 試閱結尾頁 ── */
+.preview-end {
+  text-align:center;
+  padding:5rem 2rem 8rem;
+  background:var(--paper);
+}
+.pe-rule { width:44px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:0 auto 3rem; }
+.pe-lbl { font-family:'Noto Sans TC',sans-serif;font-size:.6rem;font-weight:300;letter-spacing:.7em;color:var(--gold);margin-bottom:2rem; }
+.pe-title { font-size:clamp(1.3rem,3vw,2rem);font-weight:500;color:var(--ink);letter-spacing:.18em;line-height:1.8;margin-bottom:1rem; }
+.pe-sub { font-family:'Noto Sans TC',sans-serif;font-size:.7rem;font-weight:300;color:var(--grey);letter-spacing:.3em;margin-bottom:3rem;line-height:2.4; }
+.pe-note { font-family:'Noto Sans TC',sans-serif;font-size:.62rem;font-weight:300;color:var(--grey2);letter-spacing:.35em;line-height:2.8;margin-top:2rem; }
+
+@media(max-width:560px){
+  .sh-nav{gap:0;}
+  .sh-btn{padding:.4rem .45rem;font-size:.55rem;}
+  .nbody{padding:80px 1.3rem 8rem;}
+}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<!-- ══ COVER ══ -->
+<div id="cover" onclick="open_()">
+  <div class="cv-grain"></div>
+  <div class="cv-light"></div>
+  <div class="cv-ring"></div><div class="cv-ring"></div><div class="cv-ring"></div>
+  <div class="cv">
+    <div class="cv-eye">試閱版　長篇小說</div>
+    <div class="cv-t1">如果你沒有先走</div>
+    <div class="cv-t2">遲　初</div>
+    <div class="cv-rule"></div>
+    <div class="cv-meta">序章　＋　第一章<br>共收錄前兩章</div>
+    <div class="cv-hint">點擊　開始閱讀</div>
+  </div>
+</div>
+
+<!-- ══ NOVEL ══ -->
+<div id="novel">
+  <header class="siteheader">
+    <span class="sh-title">如果你沒有先走　｜　試閱版</span>
+    <nav class="sh-nav">
+      <button class="sh-btn on" onclick="go(0)" id="b0">序</button>
+      <button class="sh-btn" onclick="go(1)" id="b1">一</button>
+    </nav>
+  </header>
+
+  <div class="nbody">
+
+<!-- 序章 -->
+<div class="cb on" id="c0">
+<div class="ch">
+  <div class="ch-lbl">序　章</div>
+  <div class="ch-ttl">那把還回去的傘</div>
+  <div class="ch-epi">
+    意難平的不是愛，<br>
+    是那個「如果」——<br>
+    如果當時說了，<br>
+    如果當時問了，<br>
+    如果那天沒有轉身走。
+  </div>
+</div>
+<div class="p">
+
+<p>後來葉知晚想，她這輩子最後悔的事，不是沒說出口的那句話。</p>
+
+<p>是那把傘。</p>
+
+<p>大三那年下雨，他把傘遞給她，自己撐著書包跑回宿舍。她在樓下等雨停，手裡攥著那把傘，想著是不是要傳訊息問他要不要來拿。後來她發了一條「你的傘我放管理室那邊了」，他回「好謝謝」，就這樣。</p>
+
+<p>她以為他不在意。</p>
+
+<p>他後來說，那把傘他取回來用了很多年，壞了才丟。</p>
+
+<p class="c kl" style="font-size:1.05em;letter-spacing:.2em;padding:1em 0">「我以為你知道。」</p>
+
+<p>他說。</p>
+
+<p class="c" style="color:var(--grey);font-size:.9em;letter-spacing:.15em;padding:.8em 0">「我不知道。一次都不知道。」</p>
+
+<p>她說。</p>
+
+<p>這個故事，從頭到尾都是兩個人各自以為對方知道的事。最殘忍的地方在於：他們都沒有說錯，只是都沒有說。</p>
+
+<p class="th">七年。就這樣錯過了七年。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="go(1)">開始閱讀　第一章</button>
+</div>
+</div>
+
+
+<!-- 第一章 -->
+<div class="cb" id="c1">
+<div class="ch">
+  <div class="ch-lbl">第　一　章</div>
+  <div class="ch-ttl">製圖室的燈</div>
+  <div class="ch-epi">
+    有些人，<br>
+    你第一次見到他，<br>
+    就覺得這個人<br>
+    值得你花時間。
+  </div>
+</div>
+<div class="p">
+
+<p class="ts">大二　九月　台北</p>
+
+<p>葉知晚第一次見到林澈，是在大二的製圖室。</p>
+
+<p>凌晨兩點，整棟樓只剩那間教室開著燈。她的建模軟體第十七次崩潰，她盯著空白的螢幕，心裡想，算了，死了算了。</p>
+
+<p>「你的版本太舊了。」</p>
+
+<p>她抬頭。一個她沒見過的男生站在她座位旁邊，指著她的電腦螢幕。「建模軟體，你用的是2009版本。學校電腦裡有新的，U11那排。」</p>
+
+<p>她沒說謝謝，只是拔起隨身碟跟他走。</p>
+
+<p>事後她想，那個「算了，死了算了」其實只是說說，是每個熬夜趕報告的人都會喃喃的廢話。但她還是記得那晚。林澈把新軟體的操作邏輯一步一步解釋給她聽，聲音低、不急，像是那件事值得他花時間。</p>
+
+<p>那年冬天，她開始注意他。</p>
+
+<p>她的「注意」是安靜的——她不是那種會主動開口的人。她觀察到他習慣坐靠門那排，喝黑咖啡不加糖，做設計稿的時候會咬筆桿。她把這些收在心裡，像收藏不打算展示的東西，只是覺得有比沒有好。</p>
+
+<p class="sb">·　·　·</p>
+
+<p>大三春天，有一次下雨，他把傘借給她，自己撐著書包跑回宿舍。</p>
+
+<p>她在宿舍樓下等他雨停，手裡攥著他的傘，想著是不是要敲訊息問他要不要來拿。後來沒敲。她想他可能已經換了衣服，可能已經不在意，可能覺得一把傘根本無所謂。她發了一條「你的傘我放管理室那邊了」，他回「好謝謝」，就這樣。</p>
+
+<p class="th">她以為他不在意。</p>
+
+<p class="th">她不知道，他後來把那把傘取了回來，用了很多年。</p>
+
+<p class="sb">— ✦ —</p>
+
+<p>那年夏天，她有機會開口的，她知道。</p>
+
+<p>林澈畢業前夕，系上幾個人一起去吃飯，喝了點酒，散場時他說要送她回宿舍。夏夜的風很熱，路燈把他的影子拉得很長。走到一半他問：「你之後有什麼打算？」</p>
+
+<p>「就是……繼續讀吧。」她說。</p>
+
+<p>「嗯。」他說，「我去東京。我拿到那邊一個設計院的機會。」</p>
+
+<p>她說：「哦，那很好。」</p>
+
+<p>她沒說的是：我想問你，等你回來嗎，我可以等你嗎。</p>
+
+<p class="th">她什麼都沒說。</p>
+
+<p>她後來說服自己，那不是她的事。他也從沒說什麼，他只是一個借過她傘、在她軟體崩潰時順手幫了一把的人。她把那些心意摺好，壓進心裡最深的抽屜，告訴自己：沒事，沒事，有些人不是用來在一起的，是用來記著的。</p>
+
+<p>他去東京那天，她剛好在圖書館，沒送。</p>
+
+</div>
+<div class="cf">
+  <div class="cf-d">✦</div>
+  <button class="cf-btn" onclick="showEnd()">試閱到此結束</button>
+</div>
+</div>
+
+
+<!-- ══ 試閱結尾 ══ -->
+<div class="cb" id="c-end">
+  <div class="preview-end">
+    <div class="pe-rule"></div>
+    <div class="pe-lbl">試　閱　結　束</div>
+    <div class="pe-title">如果你沒有先走</div>
+    <div class="pe-sub">
+      遲　初　著<br>
+      全文約一萬二千字<br>
+      共收錄　序章　＋　第一章至第七章　＋　尾章
+    </div>
+    <div class="pe-rule"></div>
+    <div class="pe-note">
+      她去了東京之後，七年。<br>
+      他有沒有回來？<br>
+      回來了，又怎樣？<br><br>
+      故事還沒說完。
+    </div>
+  </div>
+</div>
+
+  </div><!-- /nbody -->
+</div><!-- /novel -->
+
+<script>
+function open_() {
+  document.getElementById('cover').style.display = 'none';
+  document.getElementById('novel').style.display = 'block';
+  go(0);
+  window.addEventListener('scroll', onScroll);
+}
+
+let cur = 0;
+function go(n) {
+  document.querySelectorAll('.cb').forEach(el => el.classList.remove('on'));
+  document.querySelectorAll('.sh-btn').forEach(el => el.classList.remove('on'));
+  document.getElementById('c' + n).classList.add('on');
+  const btn = document.getElementById('b' + n);
+  if (btn) btn.classList.add('on');
+  cur = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showEnd() {
+  document.querySelectorAll('.cb').forEach(el => el.classList.remove('on'));
+  document.querySelectorAll('.sh-btn').forEach(el => el.classList.remove('on'));
+  document.getElementById('c-end').classList.add('on');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function onScroll() {
+  const novel = document.getElementById('novel');
+  const scrolled = window.scrollY;
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = total > 0 ? (scrolled / total) * 100 : 0;
+  document.getElementById('prog').style.width = pct + '%';
+}
+</script>
+</body>
+</html>
