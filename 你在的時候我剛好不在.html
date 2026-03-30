@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你在的時候，我剛好不在</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400&display=swap');
+
+  :root {
+    --ink: #1a1714;
+    --ink-light: #3d3830;
+    --ink-faint: #7a7068;
+    --paper: #f5f0e8;
+    --paper-warm: #ede7d8;
+    --paper-mid: #e0d9cc;
+    --accent: #8b6f5e;
+    --accent-light: #b8967f;
+    --rule: #c8bfb0;
+
+    /* Dark cover palette */
+    --cover-bg: #0e0c0a;
+    --cover-mid: #1a1714;
+    --cover-accent: #c4a882;
+    --cover-faint: #6b5f54;
+    --cover-rule: #2e2822;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { font-size: 16px; }
+
+  body {
+    background: var(--cover-bg);
+    color: var(--ink);
+    font-family: 'Noto Serif TC', 'Georgia', serif;
+    font-weight: 300;
+    line-height: 2.1;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ─── COVER ─────────────────────────────────────── */
+  #cover {
+    position: fixed;
+    inset: 0;
+    background: var(--cover-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: opacity 0.9s ease, visibility 0.9s ease;
+  }
+
+  #cover.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  /* Grain texture overlay */
+  #cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  /* Radial glow */
+  #cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 45%, rgba(196,168,130,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover-inner {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    max-width: 380px;
+    padding: 2rem;
+    animation: coverFadeIn 1.6s ease both;
+  }
+
+  @keyframes coverFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* Window illustration */
+  .window-illustration {
+    margin: 0 auto 2.8rem;
+    width: 72px;
+    height: 88px;
+    opacity: 0.7;
+  }
+
+  /* Thin top rule */
+  .cover-top-rule {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--cover-faint));
+    margin: 0 auto 2.8rem;
+  }
+
+  .cover-title {
+    font-size: clamp(22px, 5vw, 30px);
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    line-height: 1.7;
+    color: #e8ddd0;
+    margin-bottom: 0.6rem;
+  }
+
+  .cover-divider {
+    width: 32px;
+    height: 1px;
+    background: var(--cover-faint);
+    margin: 2rem auto 2rem;
+  }
+
+  .cover-start-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.7rem 2.2rem;
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: var(--cover-accent);
+    border: 1px solid var(--cover-faint);
+    background: transparent;
+    cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif;
+    transition: border-color 0.3s, color 0.3s, background 0.3s;
+    text-transform: uppercase;
+  }
+
+  .cover-start-btn:hover {
+    border-color: var(--cover-accent);
+    background: rgba(196,168,130,0.06);
+    color: #e8ddd0;
+  }
+
+  /* ─── READER ─────────────────────────────────────── */
+  #reader {
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease 0.3s, visibility 0.8s ease 0.3s;
+  }
+
+  #reader.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* ─── NAV ─────────────────────────────────────── */
+  nav {
+    flex-shrink: 0;
+    background: rgba(245, 240, 232, 0.97);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 50px;
+    position: relative;
+    z-index: 50;
+    gap: 1rem;
+  }
+
+  .nav-title {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--ink-faint);
+    font-weight: 300;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Hamburger for mobile */
+  .nav-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 0 0.3rem;
+    flex-shrink: 0;
+  }
+
+  .nav-scroll-wrap {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .nav-scroll-wrap::-webkit-scrollbar { display: none; }
+
+  .nav-chapters {
+    display: flex;
+    gap: 0;
+    list-style: none;
+    min-width: max-content;
+  }
+
+  .nav-chapters a {
+    display: block;
+    padding: 0 0.75rem;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-decoration: none;
+    height: 50px;
+    line-height: 50px;
+    transition: color 0.2s;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .nav-chapters a:hover { color: var(--accent); }
+  .nav-chapters a.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Dropdown nav for mobile */
+  .nav-dropdown {
+    display: none;
+    position: absolute;
+    top: 50px;
+    left: 0; right: 0;
+    background: rgba(245,240,232,0.98);
+    border-bottom: 1px solid var(--rule);
+    z-index: 60;
+    padding: 0.5rem 0;
+  }
+  .nav-dropdown.open { display: block; }
+  .nav-dropdown a {
+    display: block;
+    padding: 0.55rem 2rem;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nav-dropdown a:hover, .nav-dropdown a.active { color: var(--accent); }
+
+  /* ─── PAGE CONTENT ─────────────────────────────── */
+  .page-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .page {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 3.5rem 0 5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.45s ease, visibility 0.45s ease;
+    pointer-events: none;
+  }
+
+  .page.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .page-inner {
+    width: 100%;
+    max-width: 640px;
+    padding: 0 2.5rem;
+  }
+
+  /* ─── CHAPTER HEADER ─────────────────────────── */
+  .chapter-header {
+    text-align: center;
+    padding-bottom: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .chapter-label {
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 0.6rem;
+    text-transform: uppercase;
+  }
+
+  .chapter-title-num {
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    color: var(--ink-light);
+    margin-bottom: 0.4rem;
+  }
+
+  .chapter-subtitle {
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--accent-light);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 300;
+    margin-top: 0.3rem;
+  }
+
+  .chapter-rule {
+    width: 30px;
+    height: 1px;
+    background: var(--accent);
+    margin: 1rem auto 0;
+    opacity: 0.45;
+  }
+
+  /* Special: prologue / epilogue label */
+  .special-label {
+    font-size: 11px;
+    letter-spacing: 0.45em;
+    color: var(--accent-light);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  /* ─── PROSE ──────────────────────────────────── */
+  .prose p {
+    margin-bottom: 1.6em;
+    text-align: justify;
+    text-justify: inter-ideographic;
+    color: var(--ink);
+    font-size: 15.5px;
+    line-height: 2.15;
+  }
+
+  .prose p.indent { text-indent: 2em; }
+  .prose p:first-child { text-indent: 0; }
+
+  .scene-break {
+    text-align: center;
+    margin: 2.5em 0;
+    color: var(--rule);
+    letter-spacing: 0.5em;
+    font-size: 13px;
+  }
+
+  /* ─── CHARACTER LIST ─────────────────────────── */
+  .character-list {
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    padding: 2rem 2.5rem;
+    margin-bottom: 3rem;
+    font-size: 13.5px;
+    line-height: 2.2;
+    color: var(--ink-light);
+  }
+
+  .character-list-title {
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+  }
+
+  .character-list p { margin-bottom: 0.4em; }
+  .character-list strong { color: var(--ink); font-weight: 500; }
+
+  /* ─── EPILOGUE ───────────────────────────────── */
+  .epilogue-header {
+    text-align: center;
+    padding-bottom: 2.5rem;
+  }
+
+  /* ─── AUTHOR NOTE ────────────────────────────── */
+  .authors-note {
+    margin-top: 3.5rem;
+    padding: 2.2rem 2.5rem;
+    background: var(--paper-warm);
+    border-left: 2px solid var(--accent);
+    font-size: 13.5px;
+    line-height: 2.0;
+    color: var(--ink-faint);
+  }
+
+  .authors-note p {
+    margin-bottom: 0.8em;
+    font-style: italic;
+  }
+  .authors-note p:last-child { margin-bottom: 0; }
+
+  /* ─── END MARK ───────────────────────────────── */
+  .end-mark {
+    text-align: center;
+    padding: 3rem 0 1rem;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  /* ─── NAV ARROWS ─────────────────────────────── */
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2.5rem 0 0;
+    border-top: 1px solid var(--rule);
+    margin-top: 3rem;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  .page-nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-family: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
+    padding: 0.4rem 0;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .page-nav-btn:hover { color: var(--accent); }
+  .page-nav-btn.hidden { visibility: hidden; }
+
+  .page-nav-label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  /* ─── SCENE DIVIDER (inside same page) ───────── */
+  .inline-divider {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 3.5rem 0;
+  }
+  .inline-divider::before,
+  .inline-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+  .inline-divider span {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  /* ─── RESPONSIVE ─────────────────────────────── */
+  @media (max-width: 640px) {
+    nav { padding: 0 1rem; }
+    .nav-scroll-wrap { display: none; }
+    .nav-menu-btn { display: block; }
+    .page-inner { padding: 0 1.4rem; }
+    .page { padding: 2.5rem 0 4rem; }
+    body { font-size: 15px; }
+    .cover-title { letter-spacing: 0.2em; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ COVER ═══════════════════════════════════════════ -->
+<div id="cover">
+  <div class="cover-inner">
+    <div class="cover-top-rule"></div>
+
+    <svg class="window-illustration" viewBox="0 0 72 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="6" y="6" width="60" height="74" rx="1" stroke="#c4a882" stroke-width="1.2" fill="none" opacity="0.6"/>
+      <line x1="6" y1="78" x2="66" y2="78" stroke="#c4a882" stroke-width="1.2" opacity="0.5"/>
+      <line x1="6" y1="43" x2="66" y2="43" stroke="#c4a882" stroke-width="0.8" opacity="0.4"/>
+      <line x1="36" y1="6" x2="36" y2="78" stroke="#c4a882" stroke-width="0.8" opacity="0.4"/>
+      <rect x="7" y="7" width="28" height="35" fill="rgba(196,168,130,0.04)"/>
+      <rect x="37" y="7" width="28" height="35" fill="rgba(196,168,130,0.03)"/>
+      <circle cx="51" cy="22" r="2" fill="#c4a882" opacity="0.55"/>
+      <circle cx="51" cy="22" r="5" fill="#c4a882" opacity="0.1"/>
+    </svg>
+
+    <h1 class="cover-title">你在的時候<br>我剛好不在</h1>
+    <p style="font-size:11px;letter-spacing:0.35em;color:var(--cover-faint);font-family:'Noto Sans TC',sans-serif;font-weight:300;margin-top:1.1rem;">遲初</p>
+
+    <div class="cover-divider"></div>
+
+    <button class="cover-start-btn" onclick="enterReader()">進入閱讀</button>
+  </div>
+</div>
+
+<!-- ═══ READER ════════════════════════════════════════== -->
+<div id="reader">
+
+  <!-- NAV -->
+  <nav>
+    <span class="nav-title">你在的時候，我剛好不在</span>
+    <div class="nav-scroll-wrap">
+      <ul class="nav-chapters" id="navList">
+        <!-- Filled by JS -->
+      </ul>
+    </div>
+    <button class="nav-menu-btn" onclick="toggleDropdown()" aria-label="章節選單">☰</button>
+  </nav>
+  <div class="nav-dropdown" id="navDropdown">
+    <!-- Filled by JS -->
+  </div>
+
+  <!-- PAGES -->
+  <div class="page-container" id="pageContainer">
+    <!-- Filled by JS -->
+  </div>
+
+</div>
+
+<script>
+// ── Chapter data ──────────────────────────────────────────────────────────────
+const chapters = [
+  {
+    id: 'prologue',
+    nav: '序章',
+    header: `
+      <div class="chapter-header">
+        <div class="special-label">序章</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="character-list">
+        <div class="character-list-title">人物</div>
+        <p><strong>沈嶼</strong>——男主。31歲，建築師。沉默，記性好，習慣把話放著，等一個他說不清楚的時機。</p>
+        <p><strong>裴兮沄</strong>——女主。30歲，兒科醫生。說話快，笑得多，但最難說出口的事，她永遠藏得最深。</p>
+        <p><strong>沈母</strong>——沈嶼的母親。最早知道一切的人，也是帶走一個秘密的人。</p>
+        <p style="margin-top:0.8em; font-size:13px; color: var(--ink-faint);">他們住在同一條巷子，從五歲開始，到三十歲，整整二十五年。</p>
+      </div>
+      <div class="prose">
+        <p>那條巷子很窄，兩排房子對著對著，走到底是一堵牆，牆上掛了幾年的黃曆，後來黃曆換成別的東西，後來那堵牆也重新刷過，白了，但還是那堵牆。</p>
+        <p class="indent">沈嶼和裴兮沄在那條巷子住了二十五年。</p>
+        <p class="indent">二十五年裡，他們說過很多話，但有一句話他們誰都沒說。</p>
+        <p class="indent">這個故事說的是那一句話，和那一句話前後的二十五年。</p>
+      </div>`
+  },
+  {
+    id: 'ch1',
+    nav: '第一章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第一章</div>
+        <div class="chapter-title-num">壞掉的燈</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>沈嶼五歲那年，裴家搬進了巷子對面。</p>
+        <p class="indent">他是從窗戶縫裡看到的——一輛搬家車，幾個大人，然後一個紮著兩條辮子的女孩從車上跳下來，摔了一跤，沒哭，拍拍膝蓋站起來，仰著頭看那棟新房子，表情像是在勘察她的新領地。</p>
+        <p class="indent">他媽在旁邊說：「去跟人家打招呼。」</p>
+        <p class="indent">他搖頭。</p>
+        <p class="indent">他媽說：「去，就說你好，我叫沈嶼，我家在對面。」</p>
+        <p class="indent">他站在門口說了，那個女孩轉過頭，打量了他兩秒，說：「我叫裴兮沄。你家的燈壞了一個，我看到了。」</p>
+        <p class="indent">沈嶼轉頭看，三樓陽台燈確實壞了一顆。</p>
+        <p class="indent">他說：「壞很久了。」</p>
+        <p class="indent">裴兮沄說：「那你爸為什麼不修。」</p>
+        <p class="indent">他沒說話。</p>
+        <p class="indent">裴兮沄好像意識到什麼，沒有繼續問，只說：「那你去讓你媽修。」</p>
+        <p class="indent">然後轉身走了。</p>
+        <p class="indent">那是他們第一次說話。簡短，沒有溫度，完全不像個開頭，但後來的二十五年，都從那顆壞掉的陽台燈開始算。</p>
+      </div>`
+  },
+  {
+    id: 'ch2',
+    nav: '第二章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第二章</div>
+        <div class="chapter-title-num">記性好的人</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>他們在同一個小學，同一個班，後排靠窗的座位先後坐過彼此。</p>
+        <p class="indent">裴兮沄成績好，嘴快，喜歡在老師說錯的時候舉手訂正，因此被班上一半的人又敬又怕。沈嶼成績也好，但安靜，那種坐在後排讓人記不住臉的安靜，除了裴兮沄。</p>
+        <p class="indent">裴兮沄記得他。</p>
+        <p class="indent">後來她說過，她記得他是因為他記性太好了，「你只要聽過一次就記得，那種人很少見。」</p>
+        <p class="indent">她那時候是帶著點欽佩說的，沈嶼沒有回答，因為他也說不清自己為什麼記性那麼好——他只是習慣把那些值得記的東西，靜靜地放著，它們自然就在了。</p>
+        <p class="indent">比如裴兮沄左手腕有一個小疤，她說是六歲騎腳踏車摔的。比如她討厭香菜，但不討厭香菜入菜的味道，只討厭原葉的氣味。比如她哭的時候不出聲，眼睛會先紅，然後就過去了，她不讓眼淚掉下來。</p>
+        <p class="indent">這些他都記得，但他從未說過他記得。</p>
+        <p class="indent">小學六年級，班上有男生喜歡裴兮沄，寫了一封信塞進她課桌，她拿出來看了，然後折好，課後走到對方座位，說：「謝謝，但不行。」</p>
+        <p class="indent">乾脆，沒有殘忍，但清楚。</p>
+        <p class="indent">走回去的路上她經過沈嶼的位子，低聲說：「你看什麼，收好你的表情。」</p>
+        <p class="indent">他沒什麼表情，但她這樣說了，他就移開視線，繼續看書。</p>
+        <p class="indent">他後來想，那個時候他心裡有個什麼東西動了一下，但他六年級，他不知道那叫什麼，只是記住了。</p>
+      </div>`
+  },
+  {
+    id: 'ch3',
+    nav: '第三章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第三章</div>
+        <div class="chapter-title-num">巷子緣分</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>國中，他們不同班，但住在同一條巷子，早上一起出門，晚上差不多時候回來。</p>
+        <p class="indent">有一段時間他們幾乎是默契地在巷口碰頭，不是約的，就是剛好，她出來他也出來，然後一起走到公車站，不太說話，或者說幾句，上了公車各自坐。</p>
+        <p class="indent">裴兮沄說那是「巷子緣分」，「住得近就這樣，又不是特別要好。」</p>
+        <p class="indent">沈嶼沒有反駁，但他記得每一次碰頭的時間，記得她哪天換了新書包，哪天把頭髮剪短，哪天臉上明顯沒睡好，哪天她走路比平時快，表示有什麼事讓她心情好。</p>
+        <p class="indent">他沒說過這些，因為說出來怪，他不知道自己為什麼記，只是記了。</p>
+        <p class="indent">高一，裴兮沄喜歡上班上的一個男生，沈嶼是從她走路的方式看出來的——她會刻意在某個方向多停一秒，然後裝作沒有，但她的眼神角度出賣了她。</p>
+        <p class="indent">他什麼都沒說。</p>
+        <p class="indent">那段喜歡持續了半年，對方和別人交往了，裴兮沄那段時間有幾天走路很快，低著頭，沈嶼跟在後面，也不說話，只是不快，讓她的速度帶著。</p>
+        <p class="indent">有一天她在巷口站住，說：「沈嶼你知不知道喜歡一個人是什麼感覺？」</p>
+        <p class="indent">他說：「知道。」</p>
+        <p class="indent">她說：「那就很煩吧。」</p>
+        <p class="indent">他說：「有時候。」</p>
+        <p class="indent">她說：「你喜歡過誰。」</p>
+        <p class="indent">他說：「說了也沒用。」</p>
+        <p class="indent">她沉默了一下，說：「也是，說了也沒用。」</p>
+        <p class="indent">然後她繼續走了。</p>
+        <p class="indent">那是他距離說出口最近的一次，但沒有到。</p>
+      </div>`
+  },
+  {
+    id: 'ch4',
+    nav: '第四章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第四章</div>
+        <div class="chapter-title-num">最後一個夏天</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>高中最後一年，裴兮沄決定考醫學系，沈嶼決定考建築系。</p>
+        <p class="indent">他們的補習班在同一個方向，但不同地點，中途分開，晚上回來有時候又碰上。有一次他補習結束得早，在路口等她，她走出來看到他，說：「你怎麼在這裡。」</p>
+        <p class="indent">他說：「順路。」</p>
+        <p class="indent">她說：「你補習班不是在另一個方向嗎。」</p>
+        <p class="indent">他說：「今天早結束，繞路。」</p>
+        <p class="indent">她看了他一眼，沒說什麼，並排走回去。那晚他們說了很多，說大學志願，說她為什麼想讀醫，說他為什麼想蓋房子，說那條巷子裡哪幾棟是他覺得建得最差的，哪幾棟有意思。</p>
+        <p class="indent">那是他跟她說話最多的一晚。</p>
+        <p class="indent">快到家的時候她說：「你繞來等我，下次直接說，不用說順路，很顯而易見。」</p>
+        <p class="indent">他說：「好。」</p>
+        <p class="indent">她說：「好什麼，是在嘲笑我說顯而易見嗎。」</p>
+        <p class="indent">他說：「不是，是好，下次直接說。」</p>
+        <p class="indent">她看了他一眼，走進她家門，沒再說什麼。</p>
+        <p class="indent">後來考試，兩個人都考上了，一個台大建築，一個陽明醫學。都在台北，但開學之後各自忙著新生活，那條巷子在遠處，成了一個每學期末才回去的地方。</p>
+        <p class="indent">那個暑假是沈嶼最後一個完整記得她日常輪廓的夏天——她幾點出門，幾點回來，哪天去圖書館，哪天在家，哪天晚上燈開著，哪天很早就熄燈。他坐在窗邊畫圖，那些細節自然地進來，他接收著，什麼都沒說，什麼都沒做。</p>
+        <p class="indent">然後九月，各自去了各自的地方。</p>
+      </div>`
+  },
+  {
+    id: 'ch5',
+    nav: '第五章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第五章</div>
+        <div class="chapter-title-num">紅豆湯</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>大學之後，他們的生活交集變少，但那條巷子把他們固定在同一個座標上。</p>
+        <p class="indent">寒暑假都會回來，偶爾在巷口碰到，說幾句，有時候吃頓飯。裴兮沄大三開始忙臨床實習，回來的次數少了，沈嶼大四開始做畢業設計，整個人埋進圖紙裡，各自忙。</p>
+        <p class="indent">大二那年寒假，沈嶼回家，在巷口遇到裴兮沄，她帶著一個男生，說是同學，叫他一起去吃火鍋。</p>
+        <p class="indent">那頓飯沈嶼沒說幾句話，那個男生叫李晁，話多，對裴兮沄很好，頻頻幫她夾菜。</p>
+        <p class="indent">飯後裴兮沄把李晁先送上計程車，回頭走向沈嶼，說：「你不喜歡他。」</p>
+        <p class="indent">沈嶼說：「沒有。」</p>
+        <p class="indent">她說：「你筷子放的方式。」</p>
+        <p class="indent">他說：「什麼。」</p>
+        <p class="indent">她說：「你不舒服的時候筷子放得很整齊，強迫症。你今天筷子很整齊。」</p>
+        <p class="indent">沈嶼停了一下，說：「他對你很好。」</p>
+        <p class="indent">裴兮沄說：「嗯，他對我很好。」她說完，沒有繼續往下說，直接道晚安，走進家門。</p>
+        <p class="indent">沈嶼站在巷子裡，看著她家的燈從一樓亮到二樓，沉默了很久，才走回對面。</p>
+        <p class="indent">那段感情持續了一年半，裴兮沄醫學系大四，李晁工作了，兩地，然後沒有了。</p>
+        <p class="indent">裴兮沄回來那個暑假，在巷口見到沈嶼，臉色不差，說：「你不必說什麼，我知道你要說什麼。」</p>
+        <p class="indent">他說：「我什麼都沒打算說。」</p>
+        <p class="indent">她說：「那就好。」</p>
+        <p class="indent">然後她說：「你今天晚飯吃了嗎，我媽煮了紅豆湯，要喝嗎。」</p>
+        <p class="indent">他說要。</p>
+        <p class="indent">他們在裴家小廚房站著喝了紅豆湯，她說一點李晁的事，說沒有人的錯，說就是累了，說也許她就是不太會談感情。他沒有反駁，也沒有安慰，只是聽著，偶爾說「嗯」，讓那些話落到地上，散開，不逼她收拾。</p>
+        <p class="indent">喝完她說：「謝謝你聽，雖然你話很少，但比一直說話有用。」</p>
+        <p class="indent">他說：「那是因為你自己說得很好，不需要我說什麼。」</p>
+        <p class="indent">她愣了一下，說：「沈嶼你什麼時候會說這種話了。」</p>
+        <p class="indent">他說：「一直都會，只是你沒問過。」</p>
+        <p class="indent">她看著他笑了，那個笑是她所有笑裡他最記得的一個，有點驚訝，有點真，沒有任何表演成分。</p>
+        <p class="indent">那晚他回家躺在床上，想，如果我現在說，可以嗎。</p>
+        <p class="indent">想了很久，算了。她剛結束一段感情，你這個時候說，是什麼意思。</p>
+        <p class="indent">他把那個念頭壓回去，睡著了。</p>
+      </div>`
+  },
+  {
+    id: 'ch6',
+    nav: '第六章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第六章</div>
+        <div class="chapter-title-num">醫院走廊</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>研究所，沈嶼考進成大建築，南下台南，裴兮沄在台北住院醫師，兩個人第一次真正地不在同一座城市。</p>
+        <p class="indent">他們的碰面從每學期變成寒暑假，有時候只有過年那幾天，在老家那條巷子，說幾句，吃頓飯，然後又各自回去。每次見面都有說不完的話，但那個說不完是一種日常的說不完，不是心裡話的說不完。</p>
+        <p class="indent">研究所畢業後，沈嶼去了台北一家事務所，做住宅建築設計。同城了，但一個住院醫師排班、一個新人建築師熬圖，忙的節奏不一樣，碰面反而也沒多到哪裡去，有時候一個月傳幾條訊息，有時候見一次，有時候兩個月都在各自的工作裡消失。</p>
+        <p class="indent">沈嶼二十七歲那年，他媽生病了，胃癌，發現的時候二期。</p>
+        <p class="indent">他辭了台北的工作，回老家，一邊在附近接案子，一邊陪他媽治療。</p>
+        <p class="indent">裴兮沄那時候剛考完住院醫師升主治的考試，她媽告訴她沈嶼媽媽的事，她傳了一條訊息：「我聽說了，我有空就會回來，有什麼需要說。」</p>
+        <p class="indent">然後她真的回來了，比他預期的勤。</p>
+        <p class="indent">不是每個週末，是那種不規則的——有時候她說「這週五我值完夜班，有個空擋，我回去」，有時候只說「我在巷口，要出來嗎」。</p>
+        <p class="indent">沈嶼媽媽很喜歡裴兮沄，說她是那種讓人放心的女孩，「她說的話我都信，比醫院那邊說的還信。」</p>
+        <p class="indent">裴兮沄每次來，都坐在病床邊，把治療方案、副作用、恢復狀況解釋得很清楚，不用醫學詞彙，但沒有遺漏，沈嶼媽媽有什麼問題，她就答。</p>
+        <p class="indent">那段時間沈嶼看著她工作的方式，想起她高中說為什麼要讀醫——「因為我希望站在那個位置的時候，讓人家覺得安心。」</p>
+        <p class="indent">她做到了。</p>
+        <p class="indent">有一次他媽剛做完一輪化療，很疲，睡著了，他和裴兮沄在醫院走廊站著，窗外下著雨，他說：「謝謝妳常回來。」</p>
+        <p class="indent">她說：「應該的，阿姨對我一直很好。」</p>
+        <p class="indent">他說：「不只是應該的。」</p>
+        <p class="indent">她說：「那也沒什麼，反正我回家順路。」</p>
+        <p class="indent">他說：「醫院和我們家在反方向，從妳家來醫院不順路。」</p>
+        <p class="indent">她沉默了一下，說：「那就是特地，好吧，我特地來，行了嗎。」</p>
+        <p class="indent">他說：「謝謝妳特地來。」</p>
+        <p class="indent">她偏過頭去看窗外，雨下得很密，她說：「你讓我做什麼我就做什麼，你別讓我覺得沒用。」</p>
+        <p class="indent">沈嶼聽到那句話，心裡有什麼東西很沉地落了下去。</p>
+        <p class="indent">那一刻他想說：妳已經很有用了。妳是我在這段時間裡唯一覺得不那麼一個人扛著的原因。</p>
+        <p class="indent">他說：「知道了。」</p>
+        <p class="indent">窗外雨繼續下，他媽在裡面睡著，他和裴兮沄站在走廊，兩個人都沒再說話，但那個沉默是有溫度的，是那種多年積累出來的、不需要用話填滿的沉默。</p>
+        <p class="indent">那一刻，他比任何時候都離開口更近。</p>
+        <p class="indent">但他沒說，因為他媽在裡面，因為他現在什麼都無法許諾，因為他不知道說了之後，萬一裴兮沄不是那個意思，他連這個都保不住了。</p>
+      </div>`
+  },
+  {
+    id: 'ch7',
+    nav: '第七章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第七章</div>
+        <div class="chapter-title-num">她很好</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>沈嶼媽媽治療了一年半，恢復得還可以，轉成定期追蹤。</p>
+        <p class="indent">沈嶼重新開始接大一點的案子，日子慢慢回到軌道。裴兮沄回來的頻率降了，她主治醫師第一年，排班很重，傳訊息說「最近超忙，阿姨狀況怎樣」，他說「還好，穩定」，她說「那就好，我比較安心」。</p>
+        <p class="indent">二十八歲，沈嶼認識了一個女人，設計師，叫方穎，在一個業主的餐敘上碰到，她話多，知道的事多，他不太說話，她說得很開心。</p>
+        <p class="indent">他們交往了。</p>
+        <p class="indent">他告訴自己，他不能再等了。他等了二十三年，等的是什麼他自己說不清楚，只知道那個等把他變成一個習慣往後退的人，習慣把話放著，習慣讓時機錯過去，那不是一個好的活法。</p>
+        <p class="indent">方穎對他很認真，願意等他說話，也願意在他不說話的時候不追問。他知道她是個好的人，他也努力認真對待這段感情。</p>
+        <p class="indent">他們交往的第三個月，裴兮沄回老家，在巷口看到他和方穎一起出門，他說：「這是裴兮沄，我們從小住對面。」</p>
+        <p class="indent">方穎說：「久仰，他說過你，說你成績比他好，讓他很有壓力。」</p>
+        <p class="indent">裴兮沄看了沈嶼一眼，笑說：「那是以前，現在我可不敢在他面前說成績。」</p>
+        <p class="indent">那次碰面只有幾分鐘，三個人說了幾句，方穎和沈嶼先走，裴兮沄在後面站著，沈嶼走了幾步回頭，看到她還站在原地，眼神不知道落在哪裡，表情他讀不懂，只是覺得那個表情有什麼奇怪，但走遠了，沒再看清楚。</p>
+        <p class="indent">晚上裴兮沄傳了一條：「她很好。」</p>
+        <p class="indent">他說：「嗯。」</p>
+        <p class="indent">裴兮沄說：「我是說真的，不是客套。」</p>
+        <p class="indent">他說：「我知道。」</p>
+        <p class="indent">然後沒有了。他盯著螢幕，想說一句什麼，但他不知道那句話應該是什麼，或者說，他知道，但他不應該說。</p>
+        <p class="indent">那晚他把手機翻過去，對著天花板，窗外是那條巷子，對面裴家的燈還亮著，他看著那個光，想了很久，什麼也沒有想清楚。</p>
+      </div>`
+  },
+  {
+    id: 'ch8',
+    nav: '第八章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第八章</div>
+        <div class="chapter-title-num">你心裡有個地方我進不去</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>方穎是他談過最認真的一段感情，他知道自己努力了。</p>
+        <p class="indent">但有些事是努力沒有辦法填滿的。</p>
+        <p class="indent">他和方穎在一起兩年，方穎說：「你心裡有個地方我進不去。」</p>
+        <p class="indent">他說：「對不起。」</p>
+        <p class="indent">她說：「不要說對不起，我就是想知道是什麼。」</p>
+        <p class="indent">他沉默了很久，說：「我也不完全知道。」</p>
+        <p class="indent">她說：「我覺得你知道，你只是選擇不說。」</p>
+        <p class="indent">他沒有反駁，因為她說得對。</p>
+        <p class="indent">他們分的，都是平靜的，方穎說「我希望你找到那個能讓你說出來的人」，沈嶼說「對不起讓你浪費了時間」，她說「沒有浪費，只是走到這裡了」，然後就這樣。</p>
+        <p class="indent">那年他三十歲。</p>
+        <p class="indent">分手之後，他在辦公室坐了很久，想，那個能讓你說出來的人，你知道她是誰，你知道了二十五年，然後你一次都沒有說，你打算什麼時候說？</p>
+        <p class="indent">他沒有答案，但那個問題開始在他心裡變重，像是放置了太久的東西，佔地方，挪不開。</p>
+
+        <div class="scene-break">——</div>
+
+        <p>裴兮沄三十歲，她媽在電話裡問她「有沒有對象」，她說「最近忙，沒時間想這個」。</p>
+        <p class="indent">她媽說：「阿嶼也一個人，你們從小就好，你覺得——」</p>
+        <p class="indent">裴兮沄說：「媽，我在查房，掛了。」</p>
+        <p class="indent">她掛掉電話，站在醫院走廊，手裡還拿著電話，窗外是城市的屋頂，她想起很多年前也是這樣一個走廊，她和沈嶼站著，窗外下雨，她說「你讓我做什麼我就做什麼，你別讓我覺得沒用」。</p>
+        <p class="indent">她當時為什麼說那句話？</p>
+        <p class="indent">她後來想了很多次，說不清楚。只知道那段時間她每次回去，是因為想看到他，想知道他好不好，想做那個讓他不那麼一個人扛著的人。但她從來沒說，因為她不知道他是什麼意思，她不確定，她不敢用一個說不清楚的感覺去冒一段二十五年的情分。</p>
+        <p class="indent">她後來認識了沈嶼的女朋友方穎，說她很好，是真心話。</p>
+        <p class="indent">她那天晚上傳完訊息之後，把手機放下，坐在自己房間的床上，試圖把心裡某個東西理清楚，窗外對面沈家的燈還亮著，她沒有拉上窗簾，讓那個光在那裡，最後什麼都沒有想清楚，睡著了。</p>
+        <p class="indent">後來聽說他們分了，她沒有問原因，只是說：「你還好嗎。」</p>
+        <p class="indent">他說：「還好。」</p>
+        <p class="indent">她說：「那就好。」</p>
+        <p class="indent">然後就是這樣，那個對話停在「那就好」，兩個人各自回到各自的生活裡，繼續過，繼續忙，繼續把心裡那個說不出口的東西放著。</p>
+      </div>`
+  },
+  {
+    id: 'ch9',
+    nav: '第九章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第九章</div>
+        <div class="chapter-title-num">她設了一個時間點</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>三十歲的秋天，裴兮沄例行健檢。</p>
+        <p class="indent">報告出來，她自己看的，看到那一行數據，沉默了很久。</p>
+        <p class="indent">她是醫生，她看懂了。</p>
+        <p class="indent">乳腺癌，早期，但需要手術，需要後續治療。預後不算壞，但要花很長的時間。</p>
+        <p class="indent">她坐在診間，把報告折好，放進袋子，出門，繼續查房，繼續看診，繼續把那個事情放在日常生活的縫隙裡，像一個她知道但還沒決定怎麼放置的東西。</p>
+        <p class="indent">她告訴了她媽，她媽哭了，她說：「你哭什麼，我說了預後不錯，別嚇自己。」</p>
+        <p class="indent">她媽問：「你要告訴沈嶼嗎？」</p>
+        <p class="indent">裴兮沄說：「為什麼要告訴他。」</p>
+        <p class="indent">她媽說：「他是你最近的朋友。」</p>
+        <p class="indent">裴兮沄說：「他最近剛分手，不要去麻煩他。」</p>
+        <p class="indent">她媽說：「他會想知道的。」</p>
+        <p class="indent">裴兮沄說：「媽，夠了，這是我的事，我自己決定要告訴誰。」</p>
+        <p class="indent">她沒有告訴沈嶼。</p>
+        <p class="indent">她的邏輯是清楚的：她不想用這件事讓他覺得有義務出現。她了解沈嶼，他是那種一旦知道就會扛起來的人，他會來，會出現，會做所有他能做的事。但她不要。她不要用這件事換他出現在她身邊，如果他出現，她要他是因為他自己想，不是因為她生病了。</p>
+        <p class="indent">她開始治療，手術，化療，掉頭髮，那段時間她請了假，在台北的租屋處養著，她媽偶爾上來，她朋友輪流看她，她把那段時間過得盡量正常。</p>
+        <p class="indent">沈嶼那段時間偶爾傳訊息——「最近怎樣」「有空嗎，在台北可以吃個飯」——她說「最近忙，下次吧」，說了幾次，他沒有追，只說「好，有空說」。</p>
+        <p class="indent">她感謝他不追問，但也有一個深夜，她坐在床上，頭上帶著帽子，很冷，很想有一個人在旁邊，那個人她知道她想是誰，但她不出聲。</p>
+        <p class="indent">她告訴自己：你撐過這段，你好起來，然後你去找他，你親自開口，這一次，你說。</p>
+        <p class="indent">她設了一個時間點：治療結束，恢復穩定，她去找他，她說。</p>
+        <p class="indent">二十五年了，她也欠他一句話。</p>
+      </div>`
+  },
+  {
+    id: 'ch10',
+    nav: '第十章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十章</div>
+        <div class="chapter-title-num">他等著她好起來</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>沈嶼是從他媽那裡知道的。</p>
+        <p class="indent">他媽有一次說：「裴兮沄最近好像在養病，她媽說她有一陣子不舒服。」</p>
+        <p class="indent">他說：「什麼不舒服。」</p>
+        <p class="indent">他媽說：「不知道，她媽說是小問題，休息一陣子就好。」</p>
+        <p class="indent">他發了一條訊息給裴兮沄：「聽說你最近不舒服，還好嗎。」</p>
+        <p class="indent">她回：「沒事，就是有點累，休息一下。你別擔心。」</p>
+        <p class="indent">他說：「需要幫忙的話說。」</p>
+        <p class="indent">她說：「知道了，謝謝。」</p>
+        <p class="indent">然後就是這樣，那個對話平靜地結束，他不確定是什麼，但她說沒事，他想她應該知道自己的身體，她是醫生，她說沒事，那應該沒事。</p>
+        <p class="indent">但他那段時間睡眠不好，夜裡醒著，老是想那條巷子，想對面的燈，想她說「你讓我做什麼我就做什麼，你別讓我覺得沒用」，那句話現在想起來是什麼意思？</p>
+        <p class="indent">她到底什麼意思，他想了二十五年，還是說不清楚。</p>
+        <p class="indent">他打開他們的對話框，往上翻，翻到很久以前，翻到他們剛有手機的年代，那時候還用簡訊，她發的第一條是高中聯考成績出來，「我考上了」，他回「我也是」，她說「廢話當然知道你也是，你考得比我好」。</p>
+        <p class="indent">他翻著那些訊息，一直翻，翻到最後停下來，把手機放在胸口，看著天花板。</p>
+        <p class="indent">他想，沈嶼，你到底在等什麼。</p>
+        <p class="indent">他這一次沒有找到答案，因為他其實知道答案——他等的是一個他不可能等到的確定，他想在開口之前先知道結果，但世界上沒有任何感情能給他這個保證，所以他就一直等，等了二十五年，什麼都沒有說。</p>
+        <p class="indent">他拿起手機，打了幾個字。</p>
+        <p class="indent">裴兮沄，我有一件事想對你說。</p>
+        <p class="indent">他看著那行字，刪掉了。</p>
+        <p class="indent">他對自己說：等她好了，等她穩定了，當面說，不要發訊息，當面說。</p>
+        <p class="indent">他等著她好起來。</p>
+      </div>`
+  },
+  {
+    id: 'ch11',
+    nav: '第十一章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十一章</div>
+        <div class="chapter-title-num">又一次，時機錯開</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>治療結束的那個春天，裴兮沄回老家。</p>
+        <p class="indent">她頭髮剛長回來，短短的，她媽說很好看，她說「還好」。</p>
+        <p class="indent">她站在窗口，看對面沈家的燈，想，好了，你說過你要去找他，你要說，現在去。</p>
+        <p class="indent">那天下午她走到門口，在門口站了一會兒，然後走出去，走到巷子中間。</p>
+        <p class="indent">然後她看到沈嶼從對面走出來。</p>
+        <p class="indent">兩個人在巷子裡對上，下午的陽光斜斜的，把影子拉得很長。</p>
+        <p class="indent">他看到她，先是愣了一秒，然後說：「妳回來了。」</p>
+        <p class="indent">她說：「嗯，剛回來。」</p>
+        <p class="indent">他說：「頭髮剪短了。」</p>
+        <p class="indent">她說：「嗯。」</p>
+        <p class="indent">他走近兩步，仔細看了她，說：「還好嗎，真的。」</p>
+        <p class="indent">她知道他問的不只是今天，他問的是那段「不舒服」。</p>
+        <p class="indent">她說：「好了，沒事了。」</p>
+        <p class="indent">他說：「妳媽說妳生病了。」</p>
+        <p class="indent">她說：「沒事了，都過去了。」</p>
+        <p class="indent">他看著她，那個眼神她看不懂，太複雜，但她知道他有話要說，她也有話要說。</p>
+        <p class="indent">她深吸一口氣，說：「沈嶼，我有一件事——」</p>
+        <p class="indent">他的手機響了。</p>
+        <p class="indent">他低頭看了一眼，臉色變了，說：「對不起，是事務所，有個緊急狀況，我得先——」</p>
+        <p class="indent">她說：「去吧。」</p>
+        <p class="indent">他說：「妳等我，我處理完就回來，我們再說。」</p>
+        <p class="indent">她說：「好，去吧。」</p>
+        <p class="indent">他跑回去，開車走了。</p>
+        <p class="indent">她站在巷子裡，看著他車子的尾燈消失在巷口，又一次，他在她說之前走了。又一次，時機錯開。</p>
+        <p class="indent">她站了一會兒，苦笑了一下，走回家。</p>
+
+        <div class="scene-break">——</div>
+
+        <p>他那天事務所的緊急狀況處理到很晚，他晚上十一點傳訊息：「妳還在家嗎，我可以過去嗎。」</p>
+        <p class="indent">她說：「已經睡了，明天吧。」</p>
+        <p class="indent">他說：「好，明天，妳今天說有話要說。」</p>
+        <p class="indent">她說：「嗯，明天說。」</p>
+        <p class="indent">她沒有睡，她躺在床上，想那句話怎麼開口，想了很久，決定了措辭，練習了幾遍，然後睡著了。</p>
+        <p class="indent">隔天早上，沈嶼媽媽跌倒了。</p>
+        <p class="indent">浴室，骨折，送醫院，沈嶼整個人都撲在那邊，裴兮沄衝過去幫著看片子、對接骨科主治，忙了整整一天。</p>
+        <p class="indent">她說那件事的機會，又沒了。</p>
+        <p class="indent">她告訴自己：沒事，等阿姨穩定了，你再說。</p>
+        <p class="indent">然後就是一個又一個的等。等阿姨穩定，等他案子收尾，等一個都在、都空、都對的時候。</p>
+        <p class="indent">但那個時候，從來沒有同時來。</p>
+      </div>`
+  },
+  {
+    id: 'ch12',
+    nav: '第十二章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十二章</div>
+        <div class="chapter-title-num">廚房</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>六月，沈嶼媽媽恢復得差不多，可以在家養著了。</p>
+        <p class="indent">沈嶼鬆了口氣，那天晚上他在老家吃了飯，走出來，對面裴家的燈亮著，他站在巷子裡，想，去吧，去說吧，今天說。</p>
+        <p class="indent">他走過去，按了門鈴。</p>
+        <p class="indent">裴兮沄開門，看到他，說：「阿姨好一點了嗎。」</p>
+        <p class="indent">他說：「好多了，謝謝妳那天幫忙。」</p>
+        <p class="indent">她說：「應該的，進來嗎，我媽煮了湯。」</p>
+        <p class="indent">他進去，喝了湯，她媽識趣地說「我去看電視」，走開了，留他們在廚房。</p>
+        <p class="indent">裴兮沄在洗碗，他站在旁邊，說：「妳上次說有話要說。」</p>
+        <p class="indent">她說：「嗯，你也說有話要說。」</p>
+        <p class="indent">他說：「妳先說。」</p>
+        <p class="indent">她把碗放下，擦了手，轉過來看他，說：「沈嶼，我先說一件事，你聽完再說你的。」</p>
+        <p class="indent">他說：「好。」</p>
+        <p class="indent">她說：「我去年生病了，不是小病，是乳腺癌，手術加化療，已經結束了，恢復狀況很好，預後樂觀。我沒有告訴你，是因為我不想讓你用那個理由出現在我身邊。」</p>
+        <p class="indent">沈嶼沒有說話，他臉色沉下去，但他沒有打斷她。</p>
+        <p class="indent">她說：「我設了一個時間點，說等我好了，我去找你，我說。因為有件事我放了很久，我覺得我應該在好的時候說，不是在生病的時候說，我不要你混淆那兩件事。」</p>
+        <p class="indent">他還是沒有說話，但他眼神裡有什麼東西她說不清楚，那個東西很重，她繼續說，聲音沒有變：</p>
+        <p class="indent">「沈嶼，我喜歡你，不是現在才喜歡，是很久了，久到我說不清楚從哪裡開始。我一直沒說，因為我們住對面，因為我不確定，因為我怕說了之後你說不是那個意思，然後我們二十五年的事全部不一樣了。但是我現在要說，因為我這一年在想，如果最後的結果不好，我沒有說，那才是我最後悔的事。所以我說。」</p>
+        <p class="indent">她說完，站在那裡，看著他，等他說什麼。</p>
+        <p class="indent">沈嶼站在廚房的燈光裡，沉默了很久。</p>
+        <p class="indent">然後他說：「妳為什麼去年不告訴我妳生病了。」</p>
+        <p class="indent">她說：「我說了，因為——」</p>
+        <p class="indent">「因為妳不想讓我用那個理由出現，」他說，聲音很平，但她聽出來那個平靜裡有什麼東西在壓著，「裴兮沄，我找了整整一年妳的訊號，妳說累，妳說忙，妳說下次，妳讓我進不去，我以為妳只是忙，我以為妳——」</p>
+        <p class="indent">他停下來，抿了一下嘴，說：「妳一個人撐了一整年。」</p>
+        <p class="indent">她說：「我有我媽，我有朋友。」</p>
+        <p class="indent">他說：「妳知道我說的不是那個。」</p>
+        <p class="indent">她說：「我知道，所以我說了，我現在說了。」</p>
+        <p class="indent">他走近一步，她沒有退，他說：「我喜歡妳，比妳說的那個久還久。我二十五年沒說，是因為我每次想說，時機就錯了，你去北部念書，你帶李晁回來，我跟方穎在一起，每次我要說的時候，前後都有一個我說服自己不能說的理由。」</p>
+        <p class="indent">她說：「你也是。」</p>
+        <p class="indent">他說：「也是什麼。」</p>
+        <p class="indent">她說：「你也放了二十五年。」</p>
+        <p class="indent">他說：「嗯。」</p>
+        <p class="indent">然後他說：「妳知道我在想什麼嗎。」</p>
+        <p class="indent">她說：「說。」</p>
+        <p class="indent">他說：「我在想，如果妳去年告訴我，我就不會讓妳一個人。」</p>
+        <p class="indent">她說：「我知道，所以我沒說，因為那樣的出現不是我要的。」</p>
+        <p class="indent">他說：「那我要說清楚，我現在的出現，和妳生病沒有關係，和妳痊癒也沒有關係，是因為我喜歡妳，我喜歡了二十五年，和其他任何事情都沒有關係。」</p>
+        <p class="indent">裴兮沄站在那裡，那句話落下來的時候，她的眼睛紅了，但沒有讓眼淚掉下來，她一向如此。</p>
+        <p class="indent">她說：「沈嶼，你說話的時機永遠不對。」</p>
+        <p class="indent">他說：「我知道。」</p>
+        <p class="indent">她說：「但這次算準了。」</p>
+        <p class="indent">他說：「因為這次是妳先說的。」</p>
+        <p class="indent">她說：「所以你就等我先說。」</p>
+        <p class="indent">他說：「我等了二十五年，等你先說是應該的。」</p>
+        <p class="indent">她笑了，那個笑又是那個笑，有點驚訝，有點真，他記了二十五年的那個笑。</p>
+      </div>`
+  },
+  {
+    id: 'ch13',
+    nav: '第十三章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十三章</div>
+        <div class="chapter-title-num">悶葫蘆</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>沈嶼媽媽後來說，她早就知道了。</p>
+        <p class="indent">她說：「我等你們二十五年，我以為等不到，你們都是悶葫蘆，一個比一個會放著。」</p>
+        <p class="indent">沈嶼說：「那你為什麼不說。」</p>
+        <p class="indent">他媽說：「那是你的事，我說什麼，你說話的事自己負責。」</p>
+        <p class="indent">裴兮沄在旁邊笑，說：「阿姨說得對。」</p>
+        <p class="indent">沈嶼說：「你不要站她那邊。」</p>
+        <p class="indent">裴兮沄說：「我一直站她那邊，你沒發現嗎。」</p>
+      </div>`
+  },
+  {
+    id: 'epilogue',
+    nav: '尾聲',
+    header: `
+      <div class="chapter-header">
+        <div class="special-label">尾聲</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>那年秋天，他們還是住在那條巷子，對面和對面，但不再只是對面。</p>
+        <p class="indent">有一天傍晚，裴兮沄站在她家窗口，看對面沈家的燈，想起五歲那年她剛搬來，他站在門口說「我叫沈嶼，我家在對面」，她說「你家燈壞了一個」。</p>
+        <p class="indent">她走出去，到巷子裡，仰頭看沈家三樓陽台，說：「你知道嗎，你家陽台那個燈。」</p>
+        <p class="indent">沈嶼從門口走出來，說：「什麼。」</p>
+        <p class="indent">她說：「你五歲的時候就壞了，你現在還沒修。」</p>
+        <p class="indent">他仰頭看，說：「好像是。」</p>
+        <p class="indent">她說：「你去修。」</p>
+        <p class="indent">他說：「好。」</p>
+        <p class="indent">他說這個「好」的時候，她聽到他聲音裡有什麼東西，是那種終於放下來的重量，不是沉的，是穩的，是那種踩得住地面的感覺。</p>
+        <p class="indent">她說：「沈嶼。」</p>
+        <p class="indent">他說：「嗯。」</p>
+        <p class="indent">她說：「以後說話不要再等時機了。」</p>
+        <p class="indent">他說：「好，但妳也是。」</p>
+        <p class="indent">她說：「我先說了的，你記著。」</p>
+        <p class="indent">他說：「記著，我記性好，妳說的每一句話我都記著。」</p>
+        <p class="indent">她轉頭看他，他站在巷子裡，秋天的光把他的輪廓照得很清楚，她想，二十五年，你一直站在對面，這麼近，這麼遠，我以為永遠都是這樣了。</p>
+        <p class="indent">原來不是。</p>
+        <p class="indent">原來只是時機，一直沒有對，直到這一次，她先說了，他接住了。</p>
+        <p class="indent">她說：「進去吧，天涼了。」</p>
+        <p class="indent">他說：「嗯。」</p>
+        <p class="indent">他們走進各自的家，那條巷子在傍晚的光裡很靜，對面和對面，燈亮著，那個壞掉的陽台燈過了幾天被修好了，整條巷子的燈，第一次全亮。</p>
+      </div>
+
+      <div class="end-mark">——　全文完　——</div>
+
+      <div class="authors-note">
+        <p>這不是芭樂。他們在一起了，但代價是二十五年——二十五年各自錯過，各自等，各自拿最笨的方式保護最想靠近的人。裴兮沄用生病那一年做了最後的逼迫：她設下期限，逼自己說出口，但依然差一點又錯開。</p>
+        <p>意難平不在結局，在那些時機——</p>
+        <p>高一巷口，她問你喜歡過誰，他說說了也沒用。醫院走廊，她說你別讓我覺得沒用，他說知道了。巷子相遇，她開口說「我有一件事」，他的電話響了。</p>
+        <p>每一次都差那麼一步。</p>
+        <p>但他們最終在場了，同時，說了，這一次沒有錯開。</p>
+      </div>`
+  }
+];
+
+// ── Build nav & pages ─────────────────────────────────────────────────────────
+let currentIndex = 0;
+
+function buildReader() {
+  const navList = document.getElementById('navList');
+  const navDropdown = document.getElementById('navDropdown');
+  const container = document.getElementById('pageContainer');
+
+  chapters.forEach((ch, i) => {
+    // Desktop nav item
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.textContent = ch.nav;
+    a.href = '#';
+    a.addEventListener('click', e => { e.preventDefault(); goToPage(i); });
+    li.appendChild(a);
+    navList.appendChild(li);
+
+    // Mobile dropdown item
+    const da = document.createElement('a');
+    da.textContent = ch.nav;
+    da.href = '#';
+    da.addEventListener('click', e => {
+      e.preventDefault();
+      goToPage(i);
+      closeDropdown();
+    });
+    navDropdown.appendChild(da);
+
+    // Page
+    const page = document.createElement('div');
+    page.className = 'page';
+    page.id = 'page-' + ch.id;
+    page.innerHTML = `
+      <div class="page-inner">
+        ${ch.header}
+        ${ch.content}
+        <div class="page-nav">
+          <button class="page-nav-btn prev-btn ${i === 0 ? 'hidden' : ''}" onclick="goToPage(${i-1})">
+            ← ${i > 0 ? chapters[i-1].nav : ''}
+          </button>
+          <span class="page-nav-label">${i+1} / ${chapters.length}</span>
+          <button class="page-nav-btn next-btn ${i === chapters.length-1 ? 'hidden' : ''}" onclick="goToPage(${i+1})">
+            ${i < chapters.length-1 ? chapters[i+1].nav : ''} →
+          </button>
+        </div>
+      </div>`;
+    container.appendChild(page);
+  });
+
+  goToPage(0);
+}
+
+function goToPage(index) {
+  // Hide current
+  const pages = document.querySelectorAll('.page');
+  pages.forEach(p => p.classList.remove('active'));
+
+  const navLinks = document.querySelectorAll('#navList a');
+  navLinks.forEach(a => a.classList.remove('active'));
+
+  const dropLinks = document.querySelectorAll('#navDropdown a');
+  dropLinks.forEach(a => a.classList.remove('active'));
+
+  // Show new
+  pages[index].classList.add('active');
+  navLinks[index].classList.add('active');
+  dropLinks[index].classList.add('active');
+
+  // Scroll to top of new page
+  pages[index].scrollTop = 0;
+
+  // Scroll nav link into view
+  navLinks[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+  currentIndex = index;
+}
+
+function toggleDropdown() {
+  document.getElementById('navDropdown').classList.toggle('open');
+}
+
+function closeDropdown() {
+  document.getElementById('navDropdown').classList.remove('open');
+}
+
+function enterReader() {
+  document.getElementById('cover').classList.add('hidden');
+  document.body.style.overflow = '';
+  const reader = document.getElementById('reader');
+  reader.classList.add('visible');
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('reader').classList.contains('visible')) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    if (currentIndex < chapters.length - 1) goToPage(currentIndex + 1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    if (currentIndex > 0) goToPage(currentIndex - 1);
+  }
+});
+
+buildReader();
+</script>
+</body>
+</html>
