@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你喜歡過我嗎｜試閱版</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400&display=swap');
+
+  :root {
+    --ink: #1a1714;
+    --ink-light: #3d3830;
+    --ink-faint: #7a7068;
+    --paper: #f5f0e8;
+    --paper-warm: #ede7d8;
+    --paper-mid: #e0d9cc;
+    --accent: #8b6f5e;
+    --accent-light: #b8967f;
+    --rule: #c8bfb0;
+    --cover-bg: #0e0c0a;
+    --cover-mid: #1a1714;
+    --cover-accent: #c4a882;
+    --cover-faint: #6b5f54;
+    --cover-rule: #2e2822;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { font-size: 16px; }
+
+  body {
+    background: var(--cover-bg);
+    color: var(--ink);
+    font-family: 'Noto Serif TC', 'Georgia', serif;
+    font-weight: 300;
+    line-height: 2.1;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ─── COVER ─────────────────────────────────────── */
+  #cover {
+    position: fixed;
+    inset: 0;
+    background: var(--cover-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: opacity 0.9s ease, visibility 0.9s ease;
+  }
+
+  #cover.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  #cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  #cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 45%, rgba(196,168,130,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover-inner {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    max-width: 380px;
+    padding: 2rem;
+    animation: coverFadeIn 1.6s ease both;
+  }
+
+  @keyframes coverFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .cover-illustration {
+    margin: 0 auto 2.8rem;
+    width: 80px;
+    height: 80px;
+    opacity: 0.65;
+  }
+
+  .cover-top-rule {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--cover-faint));
+    margin: 0 auto 2.8rem;
+  }
+
+  .cover-title {
+    font-size: clamp(22px, 5vw, 30px);
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    line-height: 1.7;
+    color: #e8ddd0;
+    margin-bottom: 0.6rem;
+  }
+
+  .cover-author {
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: var(--cover-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 300;
+    margin-top: 1.1rem;
+  }
+
+  .preview-badge {
+    display: inline-block;
+    margin-top: 0.9rem;
+    padding: 0.25rem 0.9rem;
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    color: var(--cover-bg);
+    background: var(--cover-accent);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 400;
+  }
+
+  .cover-divider {
+    width: 32px;
+    height: 1px;
+    background: var(--cover-faint);
+    margin: 2rem auto 2rem;
+  }
+
+  .cover-start-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.7rem 2.2rem;
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: var(--cover-accent);
+    border: 1px solid var(--cover-faint);
+    background: transparent;
+    cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif;
+    transition: border-color 0.3s, color 0.3s, background 0.3s;
+    text-transform: uppercase;
+  }
+
+  .cover-start-btn:hover {
+    border-color: var(--cover-accent);
+    background: rgba(196,168,130,0.06);
+    color: #e8ddd0;
+  }
+
+  /* ─── READER ─────────────────────────────────────── */
+  #reader {
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease 0.3s, visibility 0.8s ease 0.3s;
+  }
+
+  #reader.visible { opacity: 1; visibility: visible; }
+
+  /* ─── NAV ─────────────────────────────────────── */
+  nav {
+    flex-shrink: 0;
+    background: rgba(245, 240, 232, 0.97);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 50px;
+    position: relative;
+    z-index: 50;
+    gap: 1rem;
+  }
+
+  .nav-title {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--ink-faint);
+    font-weight: 300;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .nav-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 0 0.3rem;
+    flex-shrink: 0;
+  }
+
+  .nav-scroll-wrap {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .nav-scroll-wrap::-webkit-scrollbar { display: none; }
+
+  .nav-chapters {
+    display: flex;
+    gap: 0;
+    list-style: none;
+    min-width: max-content;
+  }
+
+  .nav-chapters a {
+    display: block;
+    padding: 0 0.75rem;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-decoration: none;
+    height: 50px;
+    line-height: 50px;
+    transition: color 0.2s;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .nav-chapters a:hover { color: var(--accent); }
+  .nav-chapters a.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .nav-chapters a.locked { color: var(--rule); cursor: not-allowed; }
+  .nav-chapters a.locked:hover { color: var(--ink-faint); }
+
+  .nav-dropdown {
+    display: none;
+    position: absolute;
+    top: 50px;
+    left: 0; right: 0;
+    background: rgba(245,240,232,0.98);
+    border-bottom: 1px solid var(--rule);
+    z-index: 60;
+    padding: 0.5rem 0;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .nav-dropdown.open { display: block; }
+  .nav-dropdown a {
+    display: block;
+    padding: 0.55rem 2rem;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nav-dropdown a:hover, .nav-dropdown a.active { color: var(--accent); }
+  .nav-dropdown a.locked { color: var(--rule); cursor: not-allowed; }
+
+  /* ─── PAGE CONTENT ─────────────────────────────── */
+  .page-container { flex: 1; overflow: hidden; position: relative; }
+
+  .page {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 3.5rem 0 5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.45s ease, visibility 0.45s ease;
+    pointer-events: none;
+  }
+
+  .page.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  .page-inner {
+    width: 100%;
+    max-width: 640px;
+    padding: 0 2.5rem;
+  }
+
+  /* ─── CHAPTER HEADER ─────────────────────────── */
+  .chapter-header { text-align: center; padding-bottom: 2.5rem; margin-bottom: 0.5rem; }
+
+  .chapter-label {
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 0.6rem;
+    text-transform: uppercase;
+  }
+
+  .chapter-title-num {
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    color: var(--ink-light);
+    margin-bottom: 0.4rem;
+  }
+
+  .chapter-rule {
+    width: 30px;
+    height: 1px;
+    background: var(--accent);
+    margin: 1rem auto 0;
+    opacity: 0.45;
+  }
+
+  .special-label {
+    font-size: 11px;
+    letter-spacing: 0.45em;
+    color: var(--accent-light);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  /* ─── PROSE ──────────────────────────────────── */
+  .prose p {
+    margin-bottom: 1.6em;
+    text-align: justify;
+    text-justify: inter-ideographic;
+    color: var(--ink);
+    font-size: 15.5px;
+    line-height: 2.15;
+  }
+
+  .prose p.indent { text-indent: 2em; }
+  .prose p:first-child { text-indent: 0; }
+
+  .scene-break {
+    text-align: center;
+    margin: 2.5em 0;
+    color: var(--rule);
+    letter-spacing: 0.5em;
+    font-size: 13px;
+  }
+
+  /* ─── CHARACTER LIST ─────────────────────────── */
+  .character-list {
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    padding: 2rem 2.5rem;
+    margin-bottom: 3rem;
+    font-size: 13.5px;
+    line-height: 2.2;
+    color: var(--ink-light);
+  }
+
+  .character-list-title {
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+  }
+
+  .character-list p { margin-bottom: 0.4em; }
+  .character-list strong { color: var(--ink); font-weight: 500; }
+
+  /* ─── PREVIEW BANNER ─────────────────────────── */
+  .preview-banner {
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    padding: 0.9rem 1.5rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+  }
+
+  .preview-banner strong { color: var(--accent); font-weight: 500; }
+
+  /* ─── TOC ───────────────────────────────────── */
+  .toc-wrap { margin-top: 1rem; }
+
+  .toc-title {
+    font-size: 10px;
+    letter-spacing: 0.45em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+  }
+
+  .toc-list { list-style: none; border-top: 1px solid var(--rule); }
+
+  .toc-list li {
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    padding: 0.85rem 0;
+    gap: 1rem;
+  }
+
+  .toc-list li a {
+    text-decoration: none;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    color: var(--ink-light);
+    cursor: pointer;
+    transition: color 0.2s;
+    flex: 1;
+  }
+
+  .toc-list li a:hover { color: var(--accent); }
+
+  .toc-list li.locked-item a { color: var(--ink-faint); cursor: not-allowed; }
+  .toc-list li.locked-item a:hover { color: var(--ink-faint); }
+
+  .toc-subtitle {
+    font-size: 12px;
+    color: var(--ink-faint);
+    letter-spacing: 0.1em;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  .toc-lock-icon { font-size: 11px; color: var(--rule); }
+
+  .toc-preview-tag {
+    font-size: 9.5px;
+    padding: 0.15rem 0.5rem;
+    background: var(--accent);
+    color: white;
+    letter-spacing: 0.15em;
+    font-family: 'Noto Sans TC', sans-serif;
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+
+  /* ─── LOCKED PAGE ────────────────────────────── */
+  .locked-page-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: 3rem 1.5rem;
+  }
+
+  .locked-icon { font-size: 36px; margin-bottom: 1.5rem; opacity: 0.4; }
+
+  .locked-title {
+    font-size: 16px;
+    letter-spacing: 0.25em;
+    color: var(--ink-light);
+    margin-bottom: 0.8rem;
+  }
+
+  .locked-desc {
+    font-size: 13px;
+    font-family: 'Noto Sans TC', sans-serif;
+    color: var(--ink-faint);
+    line-height: 2;
+    letter-spacing: 0.1em;
+    max-width: 320px;
+    margin-bottom: 2rem;
+  }
+
+  .locked-chapters-hint {
+    font-size: 11px;
+    font-family: 'Noto Sans TC', sans-serif;
+    color: var(--rule);
+    letter-spacing: 0.15em;
+    margin-bottom: 2.5rem;
+    line-height: 2.2;
+  }
+
+  .unlock-btn {
+    display: inline-block;
+    padding: 0.7rem 2.4rem;
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: var(--paper);
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif;
+    transition: background 0.3s;
+    text-transform: uppercase;
+  }
+
+  .unlock-btn:hover { background: var(--accent-light); }
+
+  /* ─── AUTHOR NOTE ────────────────────────────── */
+  .authors-note {
+    margin-top: 3.5rem;
+    padding: 2.2rem 2.5rem;
+    background: var(--paper-warm);
+    border-left: 2px solid var(--accent);
+    font-size: 13.5px;
+    line-height: 2.0;
+    color: var(--ink-faint);
+  }
+
+  .authors-note p { margin-bottom: 0.8em; font-style: italic; }
+  .authors-note p:last-child { margin-bottom: 0; }
+
+  .end-mark {
+    text-align: center;
+    padding: 3rem 0 1rem;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  /* ─── NAV ARROWS ─────────────────────────────── */
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2.5rem 0 0;
+    border-top: 1px solid var(--rule);
+    margin-top: 3rem;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  .page-nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-family: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
+    padding: 0.4rem 0;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .page-nav-btn:hover { color: var(--accent); }
+  .page-nav-btn.hidden { visibility: hidden; }
+
+  .page-nav-label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  /* ─── PROGRESS BAR ───────────────────────────── */
+  .progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0.5;
+    transition: width 0.3s;
+    pointer-events: none;
+  }
+
+  /* ─── RESPONSIVE ─────────────────────────────── */
+  @media (max-width: 640px) {
+    nav { padding: 0 1rem; }
+    .nav-scroll-wrap { display: none; }
+    .nav-menu-btn { display: block; }
+    .page-inner { padding: 0 1.4rem; }
+    .page { padding: 2.5rem 0 4rem; }
+    body { font-size: 15px; }
+    .cover-title { letter-spacing: 0.2em; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ COVER ═══════════════════════════════════════════ -->
+<div id="cover">
+  <div class="cover-inner">
+    <div class="cover-top-rule"></div>
+
+    <svg class="cover-illustration" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="35" stroke="#c4a882" stroke-width="1.2" opacity="0.5"/>
+      <circle cx="40" cy="40" r="26" stroke="#c4a882" stroke-width="0.8" opacity="0.35"/>
+      <circle cx="40" cy="40" r="14" stroke="#c4a882" stroke-width="1" opacity="0.5"/>
+      <circle cx="40" cy="40" r="5" fill="#c4a882" opacity="0.35"/>
+      <line x1="40" y1="14" x2="40" y2="26" stroke="#c4a882" stroke-width="0.8" opacity="0.3"/>
+      <line x1="40" y1="54" x2="40" y2="66" stroke="#c4a882" stroke-width="0.8" opacity="0.3"/>
+      <line x1="14" y1="40" x2="26" y2="40" stroke="#c4a882" stroke-width="0.8" opacity="0.3"/>
+      <line x1="54" y1="40" x2="66" y2="40" stroke="#c4a882" stroke-width="0.8" opacity="0.3"/>
+      <line x1="21" y1="21" x2="30" y2="30" stroke="#c4a882" stroke-width="0.8" opacity="0.25"/>
+      <line x1="50" y1="50" x2="59" y2="59" stroke="#c4a882" stroke-width="0.8" opacity="0.25"/>
+      <line x1="59" y1="21" x2="50" y2="30" stroke="#c4a882" stroke-width="0.8" opacity="0.25"/>
+      <line x1="21" y1="59" x2="30" y2="50" stroke="#c4a882" stroke-width="0.8" opacity="0.25"/>
+    </svg>
+
+    <h1 class="cover-title">你喜歡過我嗎</h1>
+    <p class="cover-author">遲初</p>
+    <div class="preview-badge">試　閱　版</div>
+
+    <div class="cover-divider"></div>
+
+    <button class="cover-start-btn" onclick="enterReader()">進入試閱</button>
+  </div>
+</div>
+
+<!-- ═══ READER ════════════════════════════════════════== -->
+<div id="reader">
+
+  <nav>
+    <span class="nav-title">你喜歡過我嗎｜試閱</span>
+    <div class="nav-scroll-wrap">
+      <ul class="nav-chapters" id="navList"></ul>
+    </div>
+    <button class="nav-menu-btn" onclick="toggleDropdown()" aria-label="章節選單">☰</button>
+    <div class="progress-bar" id="progressBar"></div>
+  </nav>
+  <div class="nav-dropdown" id="navDropdown"></div>
+
+  <div class="page-container" id="pageContainer"></div>
+
+</div>
+
+<script>
+const chapters = [
+  // ── 目錄 ──
+  {
+    id: 'toc',
+    nav: '目錄',
+    locked: false,
+    header: `
+      <div class="chapter-header">
+        <div class="special-label">目　錄</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="toc-wrap">
+        <div class="toc-title">Contents</div>
+        <ul class="toc-list">
+          <li>
+            <a onclick="goToPage(1)">序章</a>
+            <span class="toc-preview-tag">試閱</span>
+          </li>
+          <li>
+            <div style="flex:1">
+              <a onclick="goToPage(2)">第一章</a>
+              <div class="toc-subtitle">重新整架</div>
+            </div>
+            <span class="toc-preview-tag">試閱</span>
+          </li>
+          <li>
+            <div style="flex:1">
+              <a onclick="goToPage(3)">第二章</a>
+              <div class="toc-subtitle">不順路的順路</div>
+            </div>
+            <span class="toc-preview-tag">試閱</span>
+          </li>
+          <li>
+            <div style="flex:1">
+              <a onclick="goToPage(4)">第三章</a>
+              <div class="toc-subtitle">核心與邊緣</div>
+            </div>
+            <span class="toc-preview-tag">試閱</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第四章</a><div class="toc-subtitle">契合</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第五章</a><div class="toc-subtitle">他說我女友那邊有事</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第六章</a><div class="toc-subtitle">林依</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第七章</a><div class="toc-subtitle">算了</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第八章</a><div class="toc-subtitle">快了一點</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第九章</a><div class="toc-subtitle">那張說明牌</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第十章</a><div class="toc-subtitle">燒肉</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第十一章</a><div class="toc-subtitle">說填空的話</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第十二章</a><div class="toc-subtitle">閉著眼睛的樣子</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第十三章</a><div class="toc-subtitle">夠了嗎</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第十四章</a><div class="toc-subtitle">他人很好</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第十五章</a><div class="toc-subtitle">我心裡很平靜</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第十六章</a><div class="toc-subtitle">有些東西記得住</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>第十七章</a><div class="toc-subtitle">那件事它就只待在那個時間裡</div></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+          <li class="locked-item">
+            <div style="flex:1"><a>尾聲</a></div>
+            <span class="toc-lock-icon">🔒</span>
+          </li>
+        </ul>
+      </div>`
+  },
+
+  // ── 序章 ──
+  {
+    id: 'prologue',
+    nav: '序章',
+    locked: false,
+    header: `
+      <div class="chapter-header">
+        <div class="special-label">序章</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="preview-banner">
+        <span>📖</span>
+        <span>目前為<strong>試閱版</strong>，開放序章至第三章。</span>
+      </div>
+      <div class="character-list">
+        <div class="character-list-title">人物</div>
+        <p><strong>孟熙</strong>——28歲，雜誌社編輯。說話直，笑起來很好看，但情感上有一種奇怪的遲鈍，對別人的心意很敏感，對自己的感覺卻永遠慢半拍。</p>
+        <p><strong>齊思豫</strong>——29歲，建築師。沉穩，話不多，在人群裡讓人記得住，但從不主動解釋自己。他喜歡孟熙的方式是那種安靜的、不佔空間的，所以她一直沒察覺。</p>
+        <p><strong>傅君佑</strong>——28歲，攝影師，孟熙的老朋友。話多，細心，習慣用說廢話的方式表達關心。他喜歡孟熙的時間比他自己知道的還長。</p>
+        <p><strong>林依</strong>——齊思豫的女友。出場不多，但每次出場都讓孟熙多看清楚一件事。</p>
+        <p style="margin-top:0.8em; font-size:13px; color: var(--ink-faint);">他們都喜歡過，都沒有說，都等著一個說不清楚的確定——等到等不了了，才看清楚，那件事原來是這個形狀。</p>
+      </div>
+      <div class="prose">
+        <p>這個故事說的是那些說不清楚的感覺，和那些感覺前後的時間。</p>
+        <p class="indent">以及，慢半拍的人，是怎麼最終看見的。</p>
+      </div>`
+  },
+
+  // ── 第一章 ──
+  {
+    id: 'ch1',
+    nav: '第一章',
+    locked: false,
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第一章</div>
+        <div class="chapter-title-num">重新整架</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>孟熙記得她第一次注意到齊思豫，是大一的設計概論課。</p>
+        <p class="indent">那堂課的教授是有名的難搞，第一堂課就當場叫人回答問題，叫到齊思豫，他站起來說了三句話，不長，但邏輯清楚，教授難得點了頭。</p>
+        <p class="indent">孟熙當時坐在後排，用筆戳了旁邊的同學，低聲說：「那個人是轉學生嗎，我沒見過。」</p>
+        <p class="indent">旁邊的同學說：「本系的啊，你沒看過？」</p>
+        <p class="indent">她說：「沒有。」</p>
+        <p class="indent">後來她想，她大一整年坐在同一間教室，卻沒有看見過他，那件事本身就說明了一些什麼——他是那種讓人記得住，但你得先看見他才行的人。</p>
+        <p class="indent">他們第一次說話是在圖書館。</p>
+        <p class="indent">她找不到一本參考書，在書架邊站了很久，他從旁邊走過來，說：「妳在找什麼。」</p>
+        <p class="indent">她說書名，他說：「換位置了，上學期重新整架，在那邊。」他側頭指了個方向。</p>
+        <p class="indent">她說謝謝，他說沒事，繼續走了。</p>
+        <p class="indent">那次對話持續不超過二十秒，她後來連他臉的細節都記不清楚，只記得他說「重新整架」時帶著一種她說不清楚的篤定，像是他熟悉這個圖書館熟悉到所有細節都進了骨子裡。</p>
+        <p class="indent">她跟傅君佑說這件事，傅君佑當時還在修同一棟樓的新聞系，他說：「那就去搭話啊，說謝謝你上次指路之類的。」</p>
+        <p class="indent">她說：「說完然後呢，又能怎樣。」</p>
+        <p class="indent">傅君佑說：「你是在等他主動嗎？」</p>
+        <p class="indent">她說：「我沒有在等什麼，我只是說說。」</p>
+        <p class="indent">傅君佑看了她一眼，說：「好，說說。」</p>
+        <p class="indent">那個眼神裡有什麼她沒有讀到，因為她那時候對很多東西都沒有讀到。</p>
+      </div>`
+  },
+
+  // ── 第二章 ──
+  {
+    id: 'ch2',
+    nav: '第二章',
+    locked: false,
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第二章</div>
+        <div class="chapter-title-num">不順路的順路</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>大學四年，孟熙和齊思豫的交集是那種固定存在、又說不上深的程度。</p>
+        <p class="indent">同系，會碰面，一起做過一次組報告，偶爾在走廊說幾句話。他不是那種讓人容易靠近的人，不是冷，是那種有自己的節奏、不太需要外部填充的靜，讓別人不知道從哪裡開口。</p>
+        <p class="indent">孟熙是少數沒有被那種靜嚇退的人。</p>
+        <p class="indent">她後來自己也說不清楚原因，只是覺得跟他說話沒有那種壓迫感，他不趕你說話，你說慢一點也沒關係，他等著，那種等是有耐心的，不是在算你浪費他多少時間。</p>
+        <p class="indent">大三，系上辦了一次展覽，她負責文案，他負責空間規劃。他們在一個下午把所有東西對齊，她說「這邊的燈光方向不對，照出來的角度會讓文字難讀」，他看了一下，說「你說得對」，沒有廢話，直接調。</p>
+        <p class="indent">她第一次覺得跟他一起做事是舒服的。</p>
+        <p class="indent">那次展覽結束，大家去吃飯，散場很晚，他說要送她，她說不用，他說順路，她說「你家在另一個方向」，他說「那就不順路，我送你」。</p>
+        <p class="indent">她當時愣了一下，然後笑說「好吧」。</p>
+        <p class="indent">路上沒說太多話，走到她宿舍樓下，他說「到了」，她說「謝謝，你慢走」，他說「嗯」，就走了。</p>
+        <p class="indent">她上樓，傳了一條給傅君佑：「今晚齊思豫送我回來」。</p>
+        <p class="indent">傅君佑秒回：「然後？」</p>
+        <p class="indent">她說：「沒有然後，就到了。」</p>
+        <p class="indent">傅君佑說：「他有說送你是為什麼？」</p>
+        <p class="indent">她說：「說順路，但不順路。」</p>
+        <p class="indent">傅君佑沉默了一下，回：「嗯哼。」</p>
+        <p class="indent">孟熙沒有多想，因為她那時候對很多事情都沒有多想，包括為什麼那晚她在床邊坐了很久，對著天花板，莫名地有點心跳快。</p>
+        <p class="indent">她告訴自己是走路走太快，有點喘。</p>
+      </div>`
+  },
+
+  // ── 第三章 ──
+  {
+    id: 'ch3',
+    nav: '第三章',
+    locked: false,
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第三章</div>
+        <div class="chapter-title-num">核心與邊緣</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>大四下學期，畢業展前最忙的那段時間，他們幾乎每天都見到彼此。</p>
+        <p class="indent">她的論文需要他設計的空間作為視覺案例，他們常常坐在同一張桌子對稿，他講解設計邏輯，她問問題，他答，她記，兩個人之間有一種，她覺得很好的默契節奏。</p>
+        <p class="indent">有一次他說：「妳問問題的方式很好。」</p>
+        <p class="indent">她說：「怎麼說。」</p>
+        <p class="indent">他說：「你問到的都是核心，不問邊緣的。」</p>
+        <p class="indent">她說：「那是因為邊緣的我自己看得懂，我只問我看不懂的。」</p>
+        <p class="indent">他說：「大多數人不是這樣。」</p>
+        <p class="indent">她說：「大多數人喜歡問邊緣的，因為核心的問出來怕顯得自己不懂唄。」</p>
+        <p class="indent">他點頭，看著她說：「妳不怕。」</p>
+        <p class="indent">她說：「怕顯得不懂有什麼用，我本來就不懂。」</p>
+        <p class="indent">他說了一聲「嗯」，但那個嗯裡面帶著什麼，她沒有接收到，因為她當時在想下午還有多少字要改。</p>
+        <p class="indent">那段時間傅君佑常說她跟齊思豫走得近，她說那是工作，傅君佑說「你臉上寫的不是工作」，她說「你別亂說」。</p>
+        <p class="indent">傅君佑說：「你喜歡他嗎？」</p>
+        <p class="indent">她說：「我不知道，我沒想過這個問題。」</p>
+        <p class="indent">傅君佑說：「沒想過，還是不想想？」</p>
+        <p class="indent">她頓了一下，說：「都有可能。」</p>
+        <p class="indent">傅君佑沒有繼續追問，他那時候已經拍了幾個廣告案，開始有自己的工作，但每次孟熙想找人說說話時，即便有一搭沒一搭，他也都在。</p>
+      </div>`
+  },
+
+  // ── 鎖定頁 ──
+  {
+    id: 'locked',
+    nav: '……',
+    locked: true,
+    header: ``,
+    content: `
+      <div class="locked-page-wrap">
+        <div class="locked-icon">🔒</div>
+        <div class="locked-title">試閱章節已結束</div>
+        <div class="locked-desc">
+          你讀完了序章至第三章。<br>
+          孟熙還不知道自己喜歡誰，傅君佑已經知道了。<br>
+          故事還有很長。
+        </div>
+        <div class="locked-chapters-hint">
+          第四章　契合<br>
+          第五章　他說我女友那邊有事<br>
+          第六章　林依<br>
+          第七章　算了<br>
+          ⋯⋯ 共十七章 ＋ 尾聲
+        </div>
+        <button class="unlock-btn" onclick="alert('請洽作者或出版平台取得完整版。')">取得完整版</button>
+      </div>`
+  }
+];
+
+// ── Build nav & pages ─────────────────────────────────────────────────────────
+let currentIndex = 0;
+
+function buildReader() {
+  const navList = document.getElementById('navList');
+  const navDropdown = document.getElementById('navDropdown');
+  const container = document.getElementById('pageContainer');
+
+  chapters.forEach((ch, i) => {
+    // Desktop nav
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.textContent = ch.nav;
+    a.href = '#';
+    if (ch.locked) a.classList.add('locked');
+    a.addEventListener('click', e => { e.preventDefault(); goToPage(i); });
+    li.appendChild(a);
+    navList.appendChild(li);
+
+    // Mobile dropdown
+    const da = document.createElement('a');
+    da.textContent = ch.nav;
+    da.href = '#';
+    if (ch.locked) da.classList.add('locked');
+    da.addEventListener('click', e => { e.preventDefault(); goToPage(i); closeDropdown(); });
+    navDropdown.appendChild(da);
+
+    // Page
+    const page = document.createElement('div');
+    page.className = 'page';
+    page.id = 'page-' + ch.id;
+
+    const prevLabel = i > 0 ? chapters[i-1].nav : '';
+    const nextLabel = i < chapters.length-1 ? chapters[i+1].nav : '';
+
+    page.innerHTML = `
+      <div class="page-inner">
+        ${ch.header}
+        ${ch.content}
+        <div class="page-nav">
+          <button class="page-nav-btn prev-btn ${i === 0 ? 'hidden' : ''}" onclick="goToPage(${i-1})">
+            ← ${prevLabel}
+          </button>
+          <span class="page-nav-label">${i+1} / ${chapters.length}</span>
+          <button class="page-nav-btn next-btn ${i === chapters.length-1 ? 'hidden' : ''}" onclick="goToPage(${i+1})">
+            ${nextLabel} →
+          </button>
+        </div>
+      </div>`;
+    container.appendChild(page);
+  });
+
+  goToPage(0);
+}
+
+function goToPage(index) {
+  const pages = document.querySelectorAll('.page');
+  pages.forEach(p => p.classList.remove('active'));
+
+  const navLinks = document.querySelectorAll('#navList a');
+  navLinks.forEach(a => a.classList.remove('active'));
+
+  const dropLinks = document.querySelectorAll('#navDropdown a');
+  dropLinks.forEach(a => a.classList.remove('active'));
+
+  pages[index].classList.add('active');
+  navLinks[index].classList.add('active');
+  dropLinks[index].classList.add('active');
+
+  pages[index].scrollTop = 0;
+  navLinks[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+  currentIndex = index;
+  updateProgress();
+}
+
+function updateProgress() {
+  const bar = document.getElementById('progressBar');
+  bar.style.width = (currentIndex / (chapters.length - 1) * 100) + '%';
+}
+
+function toggleDropdown() {
+  document.getElementById('navDropdown').classList.toggle('open');
+}
+
+function closeDropdown() {
+  document.getElementById('navDropdown').classList.remove('open');
+}
+
+function enterReader() {
+  document.getElementById('cover').classList.add('hidden');
+  document.body.style.overflow = '';
+  document.getElementById('reader').classList.add('visible');
+}
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('reader').classList.contains('visible')) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    if (currentIndex < chapters.length - 1) goToPage(currentIndex + 1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    if (currentIndex > 0) goToPage(currentIndex - 1);
+  }
+});
+
+buildReader();
+</script>
+</body>
+</html>
