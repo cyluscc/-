@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你喜歡過我嗎</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400&display=swap');
+
+  :root {
+    --ink: #1a1714;
+    --ink-light: #3d3830;
+    --ink-faint: #7a7068;
+    --paper: #f5f0e8;
+    --paper-warm: #ede7d8;
+    --paper-mid: #e0d9cc;
+    --accent: #8b6f5e;
+    --accent-light: #b8967f;
+    --rule: #c8bfb0;
+
+    --cover-bg: #0e0c0a;
+    --cover-mid: #1a1714;
+    --cover-accent: #c4a882;
+    --cover-faint: #6b5f54;
+    --cover-rule: #2e2822;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { font-size: 16px; }
+
+  body {
+    background: var(--cover-bg);
+    color: var(--ink);
+    font-family: 'Noto Serif TC', 'Georgia', serif;
+    font-weight: 300;
+    line-height: 2.1;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ─── COVER ─────────────────────────────────────── */
+  #cover {
+    position: fixed;
+    inset: 0;
+    background: var(--cover-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: opacity 0.9s ease, visibility 0.9s ease;
+  }
+
+  #cover.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  #cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  #cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 45%, rgba(196,168,130,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover-inner {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    max-width: 380px;
+    padding: 2rem;
+    animation: coverFadeIn 1.6s ease both;
+  }
+
+  @keyframes coverFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* Camera lens illustration */
+  .cover-illustration {
+    margin: 0 auto 2.8rem;
+    width: 80px;
+    height: 80px;
+    opacity: 0.65;
+  }
+
+  .cover-top-rule {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--cover-faint));
+    margin: 0 auto 2.8rem;
+  }
+
+  .cover-title {
+    font-size: clamp(22px, 5vw, 30px);
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    line-height: 1.7;
+    color: #e8ddd0;
+    margin-bottom: 0.6rem;
+  }
+
+  .cover-author {
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: var(--cover-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 300;
+    margin-top: 1.1rem;
+  }
+
+  .cover-divider {
+    width: 32px;
+    height: 1px;
+    background: var(--cover-faint);
+    margin: 2rem auto 2rem;
+  }
+
+  .cover-start-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.7rem 2.2rem;
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: var(--cover-accent);
+    border: 1px solid var(--cover-faint);
+    background: transparent;
+    cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif;
+    transition: border-color 0.3s, color 0.3s, background 0.3s;
+    text-transform: uppercase;
+  }
+
+  .cover-start-btn:hover {
+    border-color: var(--cover-accent);
+    background: rgba(196,168,130,0.06);
+    color: #e8ddd0;
+  }
+
+  /* ─── READER ─────────────────────────────────────── */
+  #reader {
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease 0.3s, visibility 0.8s ease 0.3s;
+  }
+
+  #reader.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* ─── NAV ─────────────────────────────────────── */
+  nav {
+    flex-shrink: 0;
+    background: rgba(245, 240, 232, 0.97);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 50px;
+    position: relative;
+    z-index: 50;
+    gap: 1rem;
+  }
+
+  .nav-title {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--ink-faint);
+    font-weight: 300;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .nav-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 0 0.3rem;
+    flex-shrink: 0;
+  }
+
+  .nav-scroll-wrap {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .nav-scroll-wrap::-webkit-scrollbar { display: none; }
+
+  .nav-chapters {
+    display: flex;
+    gap: 0;
+    list-style: none;
+    min-width: max-content;
+  }
+
+  .nav-chapters a {
+    display: block;
+    padding: 0 0.75rem;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-decoration: none;
+    height: 50px;
+    line-height: 50px;
+    transition: color 0.2s;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .nav-chapters a:hover { color: var(--accent); }
+  .nav-chapters a.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .nav-dropdown {
+    display: none;
+    position: absolute;
+    top: 50px;
+    left: 0; right: 0;
+    background: rgba(245,240,232,0.98);
+    border-bottom: 1px solid var(--rule);
+    z-index: 60;
+    padding: 0.5rem 0;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .nav-dropdown.open { display: block; }
+  .nav-dropdown a {
+    display: block;
+    padding: 0.55rem 2rem;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nav-dropdown a:hover, .nav-dropdown a.active { color: var(--accent); }
+
+  /* ─── PAGE CONTENT ─────────────────────────────── */
+  .page-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .page {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 3.5rem 0 5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.45s ease, visibility 0.45s ease;
+    pointer-events: none;
+  }
+
+  .page.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .page-inner {
+    width: 100%;
+    max-width: 640px;
+    padding: 0 2.5rem;
+  }
+
+  /* ─── CHAPTER HEADER ─────────────────────────── */
+  .chapter-header {
+    text-align: center;
+    padding-bottom: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .chapter-label {
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 0.6rem;
+    text-transform: uppercase;
+  }
+
+  .chapter-title-num {
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    color: var(--ink-light);
+    margin-bottom: 0.4rem;
+  }
+
+  .chapter-rule {
+    width: 30px;
+    height: 1px;
+    background: var(--accent);
+    margin: 1rem auto 0;
+    opacity: 0.45;
+  }
+
+  .special-label {
+    font-size: 11px;
+    letter-spacing: 0.45em;
+    color: var(--accent-light);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  /* ─── PROSE ──────────────────────────────────── */
+  .prose p {
+    margin-bottom: 1.6em;
+    text-align: justify;
+    text-justify: inter-ideographic;
+    color: var(--ink);
+    font-size: 15.5px;
+    line-height: 2.15;
+  }
+
+  .prose p.indent { text-indent: 2em; }
+  .prose p:first-child { text-indent: 0; }
+
+  .scene-break {
+    text-align: center;
+    margin: 2.5em 0;
+    color: var(--rule);
+    letter-spacing: 0.5em;
+    font-size: 13px;
+  }
+
+  /* ─── CHARACTER LIST ─────────────────────────── */
+  .character-list {
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    padding: 2rem 2.5rem;
+    margin-bottom: 3rem;
+    font-size: 13.5px;
+    line-height: 2.2;
+    color: var(--ink-light);
+  }
+
+  .character-list-title {
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+  }
+
+  .character-list p { margin-bottom: 0.4em; }
+  .character-list strong { color: var(--ink); font-weight: 500; }
+
+  /* ─── AUTHOR NOTE ────────────────────────────── */
+  .authors-note {
+    margin-top: 3.5rem;
+    padding: 2.2rem 2.5rem;
+    background: var(--paper-warm);
+    border-left: 2px solid var(--accent);
+    font-size: 13.5px;
+    line-height: 2.0;
+    color: var(--ink-faint);
+  }
+
+  .authors-note p {
+    margin-bottom: 0.8em;
+    font-style: italic;
+  }
+  .authors-note p:last-child { margin-bottom: 0; }
+
+  /* ─── END MARK ───────────────────────────────── */
+  .end-mark {
+    text-align: center;
+    padding: 3rem 0 1rem;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  /* ─── NAV ARROWS ─────────────────────────────── */
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2.5rem 0 0;
+    border-top: 1px solid var(--rule);
+    margin-top: 3rem;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  .page-nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-family: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
+    padding: 0.4rem 0;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .page-nav-btn:hover { color: var(--accent); }
+  .page-nav-btn.hidden { visibility: hidden; }
+
+  .page-nav-label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--ink-faint);
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  /* ─── RESPONSIVE ─────────────────────────────── */
+  @media (max-width: 640px) {
+    nav { padding: 0 1rem; }
+    .nav-scroll-wrap { display: none; }
+    .nav-menu-btn { display: block; }
+    .page-inner { padding: 0 1.4rem; }
+    .page { padding: 2.5rem 0 4rem; }
+    body { font-size: 15px; }
+    .cover-title { letter-spacing: 0.2em; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ COVER ═══════════════════════════════════════════ -->
+<div id="cover">
+  <div class="cover-inner">
+    <div class="cover-top-rule"></div>
+
+    <!-- Camera lens / aperture illustration -->
+    <svg class="cover-illustration" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="35" stroke="#c4a882" stroke-width="1.2" opacity="0.5"/>
+      <circle cx="40" cy="40" r="26" stroke="#c4a882" stroke-width="0.8" opacity="0.35"/>
+      <circle cx="40" cy="40" r="14" stroke="#c4a882" stroke-width="1" opacity="0.5"/>
+      <circle cx="40" cy="40" r="5" fill="#c4a882" opacity="0.35"/>
+      <!-- aperture blades suggestion -->
+      <line x1="40" y1="14" x2="40" y2="26" stroke="#c4a882" stroke-width="0.8" opacity="0.3"/>
+      <line x1="40" y1="54" x2="40" y2="66" stroke="#c4a882" stroke-width="0.8" opacity="0.3"/>
+      <line x1="14" y1="40" x2="26" y2="40" stroke="#c4a882" stroke-width="0.8" opacity="0.3"/>
+      <line x1="54" y1="40" x2="66" y2="40" stroke="#c4a882" stroke-width="0.8" opacity="0.3"/>
+      <line x1="21" y1="21" x2="30" y2="30" stroke="#c4a882" stroke-width="0.8" opacity="0.25"/>
+      <line x1="50" y1="50" x2="59" y2="59" stroke="#c4a882" stroke-width="0.8" opacity="0.25"/>
+      <line x1="59" y1="21" x2="50" y2="30" stroke="#c4a882" stroke-width="0.8" opacity="0.25"/>
+      <line x1="21" y1="59" x2="30" y2="50" stroke="#c4a882" stroke-width="0.8" opacity="0.25"/>
+    </svg>
+
+    <h1 class="cover-title">你喜歡過我嗎</h1>
+    <p class="cover-author">遲初</p>
+
+    <div class="cover-divider"></div>
+
+    <button class="cover-start-btn" onclick="enterReader()">進入閱讀</button>
+  </div>
+</div>
+
+<!-- ═══ READER ════════════════════════════════════════== -->
+<div id="reader">
+
+  <nav>
+    <span class="nav-title">你喜歡過我嗎</span>
+    <div class="nav-scroll-wrap">
+      <ul class="nav-chapters" id="navList"></ul>
+    </div>
+    <button class="nav-menu-btn" onclick="toggleDropdown()" aria-label="章節選單">☰</button>
+  </nav>
+  <div class="nav-dropdown" id="navDropdown"></div>
+
+  <div class="page-container" id="pageContainer"></div>
+
+</div>
+
+<script>
+const chapters = [
+  {
+    id: 'prologue',
+    nav: '序章',
+    header: `
+      <div class="chapter-header">
+        <div class="special-label">序章</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="character-list">
+        <div class="character-list-title">人物</div>
+        <p><strong>孟熙</strong>——28歲，雜誌社編輯。說話直，笑起來很好看，但情感上有一種奇怪的遲鈍，對別人的心意很敏感，對自己的感覺卻永遠慢半拍。</p>
+        <p><strong>齊思豫</strong>——29歲，建築師。沉穩，話不多，在人群裡讓人記得住，但從不主動解釋自己。他喜歡孟熙的方式是那種安靜的、不佔空間的，所以她一直沒察覺。</p>
+        <p><strong>傅君佑</strong>——28歲，攝影師，孟熙的老朋友。話多，細心，習慣用說廢話的方式表達關心。他喜歡孟熙的時間比他自己知道的還長。</p>
+        <p><strong>林依</strong>——齊思豫的女友。出場不多，但每次出場都讓孟熙多看清楚一件事。</p>
+        <p style="margin-top:0.8em; font-size:13px; color: var(--ink-faint);">他們都喜歡過，都沒有說，都等著一個說不清楚的確定——等到等不了了，才看清楚，那件事原來是這個形狀。</p>
+      </div>
+      <div class="prose">
+        <p>這個故事說的是那些說不清楚的感覺，和那些感覺前後的時間。</p>
+        <p class="indent">以及，慢半拍的人，是怎麼最終看見的。</p>
+      </div>`
+  },
+  {
+    id: 'ch1',
+    nav: '第一章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第一章</div>
+        <div class="chapter-title-num">重新整架</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>孟熙記得她第一次注意到齊思豫，是大一的設計概論課。</p>
+        <p class="indent">那堂課的教授是有名的難搞，第一堂課就當場叫人回答問題，叫到齊思豫，他站起來說了三句話，不長，但邏輯清楚，教授難得點了頭。</p>
+        <p class="indent">孟熙當時坐在後排，用筆戳了旁邊的同學，低聲說：「那個人是轉學生嗎，我沒見過。」</p>
+        <p class="indent">旁邊的同學說：「本系的啊，你沒看過？」</p>
+        <p class="indent">她說：「沒有。」</p>
+        <p class="indent">後來她想，她大一整年坐在同一間教室，卻沒有看見過他，那件事本身就說明了一些什麼——他是那種讓人記得住，但你得先看見他才行的人。</p>
+        <p class="indent">他們第一次說話是在圖書館。</p>
+        <p class="indent">她找不到一本參考書，在書架邊站了很久，他從旁邊走過來，說：「妳在找什麼。」</p>
+        <p class="indent">她說書名，他說：「換位置了，上學期重新整架，在那邊。」他側頭指了個方向。</p>
+        <p class="indent">她說謝謝，他說沒事，繼續走了。</p>
+        <p class="indent">那次對話持續不超過二十秒，她後來連他臉的細節都記不清楚，只記得他說「重新整架」時帶著一種她說不清楚的篤定，像是他熟悉這個圖書館熟悉到所有細節都進了骨子裡。</p>
+        <p class="indent">她跟傅君佑說這件事，傅君佑當時還在修同一棟樓的新聞系，他說：「那就去搭話啊，說謝謝你上次指路之類的。」</p>
+        <p class="indent">她說：「說完然後呢，又能怎樣。」</p>
+        <p class="indent">傅君佑說：「你是在等他主動嗎？」</p>
+        <p class="indent">她說：「我沒有在等什麼，我只是說說。」</p>
+        <p class="indent">傅君佑看了她一眼，說：「好，說說。」</p>
+        <p class="indent">那個眼神裡有什麼她沒有讀到，因為她那時候對很多東西都沒有讀到。</p>
+      </div>`
+  },
+  {
+    id: 'ch2',
+    nav: '第二章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第二章</div>
+        <div class="chapter-title-num">不順路的順路</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>大學四年，孟熙和齊思豫的交集是那種固定存在、又說不上深的程度。</p>
+        <p class="indent">同系，會碰面，一起做過一次組報告，偶爾在走廊說幾句話。他不是那種讓人容易靠近的人，不是冷，是那種有自己的節奏、不太需要外部填充的靜，讓別人不知道從哪裡開口。</p>
+        <p class="indent">孟熙是少數沒有被那種靜嚇退的人。</p>
+        <p class="indent">她後來自己也說不清楚原因，只是覺得跟他說話沒有那種壓迫感，他不趕你說話，你說慢一點也沒關係，他等著，那種等是有耐心的，不是在算你浪費他多少時間。</p>
+        <p class="indent">大三，系上辦了一次展覽，她負責文案，他負責空間規劃。他們在一個下午把所有東西對齊，她說「這邊的燈光方向不對，照出來的角度會讓文字難讀」，他看了一下，說「你說得對」，沒有廢話，直接調。</p>
+        <p class="indent">她第一次覺得跟他一起做事是舒服的。</p>
+        <p class="indent">那次展覽結束，大家去吃飯，散場很晚，他說要送她，她說不用，他說順路，她說「你家在另一個方向」，他說「那就不順路，我送你」。</p>
+        <p class="indent">她當時愣了一下，然後笑說「好吧」。</p>
+        <p class="indent">路上沒說太多話，走到她宿舍樓下，他說「到了」，她說「謝謝，你慢走」，他說「嗯」，就走了。</p>
+        <p class="indent">她上樓，傳了一條給傅君佑：「今晚齊思豫送我回來」。</p>
+        <p class="indent">傅君佑秒回：「然後？」</p>
+        <p class="indent">她說：「沒有然後，就到了。」</p>
+        <p class="indent">傅君佑說：「他有說送你是為什麼？」</p>
+        <p class="indent">她說：「說順路，但不順路。」</p>
+        <p class="indent">傅君佑沉默了一下，回：「嗯哼。」</p>
+        <p class="indent">孟熙沒有多想，因為她那時候對很多事情都沒有多想，包括為什麼那晚她在床邊坐了很久，對著天花板，莫名地有點心跳快。</p>
+        <p class="indent">她告訴自己是走路走太快，有點喘。</p>
+      </div>`
+  },
+  {
+    id: 'ch3',
+    nav: '第三章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第三章</div>
+        <div class="chapter-title-num">核心與邊緣</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>大四下學期，畢業展前最忙的那段時間，他們幾乎每天都見到彼此。</p>
+        <p class="indent">她的論文需要他設計的空間作為視覺案例，他們常常坐在同一張桌子對稿，他講解設計邏輯，她問問題，他答，她記，兩個人之間有一種，她覺得很好的默契節奏。</p>
+        <p class="indent">有一次他說：「妳問問題的方式很好。」</p>
+        <p class="indent">她說：「怎麼說。」</p>
+        <p class="indent">他說：「你問到的都是核心，不問邊緣的。」</p>
+        <p class="indent">她說：「那是因為邊緣的我自己看得懂，我只問我看不懂的。」</p>
+        <p class="indent">他說：「大多數人不是這樣。」</p>
+        <p class="indent">她說：「大多數人喜歡問邊緣的，因為核心的問出來怕顯得自己不懂唄。」</p>
+        <p class="indent">他點頭，看著她說：「妳不怕。」</p>
+        <p class="indent">她說：「怕顯得不懂有什麼用，我本來就不懂。」</p>
+        <p class="indent">他說了一聲「嗯」，但那個嗯裡面帶著什麼，她沒有接收到，因為她當時在想下午還有多少字要改。</p>
+        <p class="indent">那段時間傅君佑常說她跟齊思豫走得近，她說那是工作，傅君佑說「你臉上寫的不是工作」，她說「你別亂說」。</p>
+        <p class="indent">傅君佑說：「你喜歡他嗎？」</p>
+        <p class="indent">她說：「我不知道，我沒想過這個問題。」</p>
+        <p class="indent">傅君佑說：「沒想過，還是不想想？」</p>
+        <p class="indent">她頓了一下，說：「都有可能。」</p>
+        <p class="indent">傅君佑沒有繼續追問，他那時候已經拍了幾個廣告案，開始有自己的工作，但每次孟熙想找人說說話時，即便有一搭沒一搭，他也都在。</p>
+      </div>`
+  },
+  {
+    id: 'ch4',
+    nav: '第四章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第四章</div>
+        <div class="chapter-title-num">契合</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>畢業那年夏天，孟熙進了一家雜誌社，齊思豫去了建築事務所。</p>
+        <p class="indent">他們不再每天見面，但還保持聯繫——那種大學好友之間的聯繫，群組裡偶爾說話，單獨的訊息也有，頻率不高，但從未斷過。</p>
+        <p class="indent">她有時候傳一篇文章，說「這個你可能會有興趣」，他回「謝謝，我看完了，第三段說的那個問題我覺得作者的解法不對」，然後說他的看法，兩個人討論幾個來回。</p>
+        <p class="indent">她享受那種討論，那種感覺跟跟別人說話不一樣，跟他說話她不需要換一個頻道，他就在她說話的那個頻道上，不需要翻譯。</p>
+        <p class="indent">有一次她問傅君佑：「你跟一個人說話，完全不需要解釋背景脈絡，他就理解了，是什麼感覺？」</p>
+        <p class="indent">傅君佑說：「什麼感覺，是在說我嗎。」</p>
+        <p class="indent">她說：「不是說你，你我是老朋友，不一樣。」</p>
+        <p class="indent">傅君佑說：「那你在說誰。」</p>
+        <p class="indent">她說：「說一個感覺，不特定誰。」</p>
+        <p class="indent">傅君佑說：「我覺得那叫作契合。」</p>
+        <p class="indent">她說：「契合。」她重複了一遍那個詞，把它放在心裡轉了一下，說，「也許是。」</p>
+        <p class="indent">那是她第一次覺得那個詞很貼切，但她當時沒有意識到，自己想的是用在齊思豫身上，她只是覺得那個詞很準確。</p>
+      </div>`
+  },
+  {
+    id: 'ch5',
+    nav: '第五章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第五章</div>
+        <div class="chapter-title-num">他說我女友那邊有事</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>那年十一月，齊思豫說他交了女朋友。</p>
+        <p class="indent">說的方式很隨意，群組裡大家問週末要不要聚，他說「我女友那邊有事，下次吧」。</p>
+        <p class="indent">孟熙當時在公司改稿，看到那條訊息，停了兩秒，然後繼續改。</p>
+        <p class="indent">她沒有特別的感覺，她告訴自己，就是大家都在往前走，很正常，他交女友很正常。</p>
+        <p class="indent">隔天傅君佑傳給她：「你看到齊思豫說他女友那條了嗎。」</p>
+        <p class="indent">她說：「看到了。」</p>
+        <p class="indent">傅君佑說：「你怎樣。」</p>
+        <p class="indent">她說：「我怎樣什麼，沒怎樣啊。」</p>
+        <p class="indent">傅君佑說：「好，沒怎樣。」</p>
+        <p class="indent">然後沒有繼續說了。</p>
+        <p class="indent">那週末孟熙一個人去書店，買了兩本書，坐在書店的角落翻了一下午，出來的時候天已經暗了，她站在書店門口，街上的燈都亮了，她突然有一種說不清楚的空，像一個她以為裝滿了的杯子，被人翻過來看了一下，原來根本沒有裝滿過。</p>
+        <p class="indent">她站了一會兒，然後走去搭捷運，告訴自己沒事，就是最近工作太累，人容易感覺被掏空。</p>
+        <p class="indent">但那個空沒有消失。</p>
+      </div>`
+  },
+  {
+    id: 'ch6',
+    nav: '第六章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第六章</div>
+        <div class="chapter-title-num">林依</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>她第一次見到林依，是三個月後的一次聚餐。</p>
+        <p class="indent">齊思豫把她帶來，說「這是林依，我之前提過的」，林依笑著跟大家打招呼，說話很好，落落大方，不讓人有壓迫感。孟熙看著她，想，她很好。</p>
+        <p class="indent">是真的覺得她很好，不是說說的那種。</p>
+        <p class="indent">飯局上林依坐在齊思豫旁邊，偶爾說話，偶爾聽，齊思豫說到什麼，她接一句，那個接法是準的，說明她懂他說的，不是在陪場。</p>
+        <p class="indent">孟熙看著這些，喝了一口湯，移開視線。</p>
+        <p class="indent">餐後眾人站在店外說話，等各自的車，林依接了個電話走開幾步，齊思豫站在孟熙旁邊，說：「妳今天話很少。」</p>
+        <p class="indent">她說：「最近工作多，有點累。」</p>
+        <p class="indent">他說：「嗯。」他看了她一眼，說：「妳那個稿子最後交出去了嗎，上次說在卡。」</p>
+        <p class="indent">她說：「交了，改了四遍。」</p>
+        <p class="indent">他說：「第幾遍過的。」</p>
+        <p class="indent">她說：「第三遍，第四遍是因為主編改了方向。」</p>
+        <p class="indent">他說：「那是無效勞動。」</p>
+        <p class="indent">她說：「職場常態。」</p>
+        <p class="indent">他說：「妳應該跟主編在第一版就確認清楚方向。」</p>
+        <p class="indent">她說：「我知道，但那個主編喜歡在過程裡改方向，確認了也沒用。」</p>
+        <p class="indent">他說：「那確實沒辦法。」</p>
+        <p class="indent">那段對話很短，但她回去之後想了很久，想的不是對話本身，是他說「妳今天話很少」時的那個語氣，帶著一種她說不清楚的熟悉，像是他習慣觀察她的樣子，她是他視野裡一個固定的參照物。</p>
+        <p class="indent">那個感覺讓她心裡有什麼東西輕輕地動了一下。</p>
+        <p class="indent">林依走回來，自然地挽上了他的手臂，說「我們該走了」，他說「嗯」，回頭和大家說「你們慢走」，然後才看向孟熙說「早點休息」，然後走了。</p>
+        <p class="indent">孟熙站在那裡，看著他們走開的背影，那個輕輕動了一下的東西，似乎往下沉了一點。</p>
+      </div>`
+  },
+  {
+    id: 'ch7',
+    nav: '第七章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第七章</div>
+        <div class="chapter-title-num">算了</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>她花了兩個月才想清楚那個「往下沉一點」是什麼。</p>
+        <p class="indent">不是傷心，不是嫉妒，是那種你發現一扇你以為存在的門，其實不在那裡，你沒有要進去，只是你以為它在，而現在它不在了，你站在那堵牆前，覺得有點茫然。</p>
+        <p class="indent">然後那個茫然慢慢變成清楚。</p>
+        <p class="indent">她在某個週二的深夜改完一篇稿子，闔上電腦，坐在辦公桌前，窗外是城市的夜，她突然很清醒地想到一件事：她喜歡齊思豫。</p>
+        <p class="indent">不只是現在喜歡，是從以前開始，在大學的那幾年，在那些說話、那些送她回去的夜晚、那些對稿的下午，她喜歡他，只是她一直沒有認清楚那個感覺叫什麼。</p>
+        <p class="indent">她坐在那裡，把這件事在心裡放了一會兒，然後說，算了。</p>
+        <p class="indent">算了是真的，不是賭氣，是那種清算完帳目之後關上帳本的感覺，東西是什麼她現在知道了，但它已經在它該在的位置上了，她沒有辦法拿它做什麼，也不需要做什麼。</p>
+        <p class="indent">她告訴自己：他有他喜歡的人了，你也要往前走。</p>
+        <p class="indent">她以為說了這句話，那件事就結束了。</p>
+        <p class="indent">但結束沒有那麼快。</p>
+      </div>`
+  },
+  {
+    id: 'ch8',
+    nav: '第八章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第八章</div>
+        <div class="chapter-title-num">快了一點</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>之後的那段時間，她每次見到齊思豫，都要先在心裡做一個什麼準備，才能讓自己看起來跟之前一樣。</p>
+        <p class="indent">不是她有意識在做，是她後來回頭想才發現的——她那段時間說話的速度比之前快一點，填滿每一個可能的沉默，不讓自己有空隙想那些不應該想的事情。</p>
+        <p class="indent">齊思豫有一次問她：「妳最近說話跟以前不太一樣。」</p>
+        <p class="indent">她說：「哪裡不一樣。」</p>
+        <p class="indent">他說：「快了一點。」</p>
+        <p class="indent">她說：「工作太忙，訓練出來的。」</p>
+        <p class="indent">他說：「不太像。」</p>
+        <p class="indent">她說：「那你說是什麼。」</p>
+        <p class="indent">他沉默了一下，說：「我不知道，只是感覺不太一樣。」</p>
+        <p class="indent">她說：「想多了，都一樣。」然後換了話題。</p>
+        <p class="indent">那次之後她開始減少單獨跟他說話的頻率，不是故意疏遠，是她知道，如果她一直站得那麼近，她沒有辦法把那個感覺真正放下。</p>
+        <p class="indent">甚至她自己都可能沒察覺，她其實也在害怕，怕被齊思豫發覺。</p>
+        <p class="indent">傅君佑那段時間常找她，他有一個攝影展在籌備，說要她幫忙看文字部分，她去了，看了，給了意見，他說「你這個人看稿子真的很快」，她說「職業病」，他說「那我要多利用你」，她說「你敢」，兩個人說說笑笑，她在那個下午是真的放鬆的。</p>
+        <p class="indent">那種放鬆她很需要，那段時間她什麼都繃著，只有傅君佑這邊不需要繃。</p>
+      </div>`
+  },
+  {
+    id: 'ch9',
+    nav: '第九章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第九章</div>
+        <div class="chapter-title-num">那張說明牌</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>傅君佑注意到孟熙心情不對，是一個週五的傍晚。</p>
+        <p class="indent">她在他攝影展的場地幫忙貼說明牌，他去搬東西回來，看到她在貼，貼完一張，看了很長時間，然後重新撕掉再貼，位置幾乎沒有差別，但她重複了三次。</p>
+        <p class="indent">他走過去，說：「那張貼好了。」</p>
+        <p class="indent">她說：「有點歪。」</p>
+        <p class="indent">他說：「沒有歪，我看過了，很正。」</p>
+        <p class="indent">她停下來，看著那張說明牌，說：「是嗎。」</p>
+        <p class="indent">他說：「嗯。你今天怎麼了。」</p>
+        <p class="indent">她說：「沒怎樣，就貼一下而已。」</p>
+        <p class="indent">他說：「孟熙，我認識你八年，你貼一張說明牌重新貼三次，不是因為它歪了。」</p>
+        <p class="indent">她沒有說話，手還放在那張說明牌上，過了一會兒，她說：「就是有點事情。」</p>
+        <p class="indent">他說：「說。」</p>
+        <p class="indent">她說：「說出來也沒用。」</p>
+        <p class="indent">他說：「說出來不一定有用，但有時候說出來好一點。」</p>
+        <p class="indent">她轉過來看他，那一刻她覺得傅君佑這個人，她認識了八年，她沒有認真想過他是什麼樣的人，她只是知道他在、他接電話、他說話，然後她就好一點了。</p>
+        <p class="indent">她說：「我好像喜歡過一個人，然後沒趕上。」</p>
+        <p class="indent">他說：「喜歡過，還是喜歡。」</p>
+        <p class="indent">她說：「我不確定，但我告訴自己是喜歡過。」</p>
+        <p class="indent">他說：「那個人是誰。」</p>
+        <p class="indent">她說：「你猜。」</p>
+        <p class="indent">他說：「我不用猜。」</p>
+        <p class="indent">她沒有說話，那個沉默就是答案。</p>
+        <p class="indent">他說：「嗯哼。」</p>
+        <p class="indent">她說：「你不問嗎，怎麼了，為什麼沒說，之類的。」</p>
+        <p class="indent">他說：「你有你的原因，你不說我不問。我只是想知道你現在好不好。」</p>
+        <p class="indent">她說：「不是很好，但也沒有很不好，就是有點空。」</p>
+        <p class="indent">他說：「那今晚你要幹嘛，沒事做的話，我請你吃燒肉，你喜歡的那家。」</p>
+        <p class="indent">她說：「就這樣？」</p>
+        <p class="indent">他說：「就這樣，你先把那個空用肚子填一點，其他的再說。」</p>
+        <p class="indent">她看著他，說：「傅君佑，你有時候說話讓人很無語。」但也很讓人安心。</p>
+        <p class="indent">他說：「那是因為你說話太讓人心急了，襯托出來的。」</p>
+        <p class="indent">她笑了，那是那段時間她笑得最真的一次。</p>
+      </div>`
+  },
+  {
+    id: 'ch10',
+    nav: '第十章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十章</div>
+        <div class="chapter-title-num">燒肉</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>那頓燒肉，他們說了很多話。</p>
+        <p class="indent">沒說齊思豫，而是其他的很多，說她那陣子的稿子，說他的攝影展，說大學的一些破事，說傅君佑有一次拍廣告把客戶的貓拍成紅眼的傳說。</p>
+        <p class="indent">她笑了很多次，一邊夾肉一邊說「你怎麼那麼慘」，他說「你笑什麼，那個客戶後來還找我合作，說我把貓拍出了個性」，她說「那個客戶審美有問題」，他說「你這樣說很沒職業道德」。</p>
+        <p class="indent">那頓飯吃到很晚，走出去的時候路上涼了，她說「最近降溫了」，他二話不說把外套拿下來，她說「你自己穿」，他說「我不冷」，然後不由分說地把外套扔她腦袋上。</p>
+        <p class="indent">「你剛才還說冷。」孟熙嘟嚷著，伸手把外套拿了下來。</p>
+        <p class="indent">傅君佑說：「我就是現在突然不冷了。」</p>
+        <p class="indent">她沒再爭，把外套穿上。</p>
+        <p class="indent">他送她到捷運站，她說「謝謝」，他說「燒肉的錢你下次還我」，她說「我以為你說請客」，他說「說說而已」，她說「你這個人」，然後他笑了。</p>
+        <p class="indent">她進站之前，回頭說：「傅君佑。」</p>
+        <p class="indent">他說：「嗯。」</p>
+        <p class="indent">她說：「你是個很好的人。」</p>
+        <p class="indent">他看著她，說：「你這句話說得像在道謝，也像在道別。」</p>
+        <p class="indent">她說：「是道謝啦。謝謝你今天陪我。」</p>
+        <p class="indent">他說：「下次還覺得空就說。」</p>
+        <p class="indent">她說：「好。」</p>
+        <p class="indent">那晚她回家，躺在床上，那個空還在，但鬆了一點，像一個一直握著的拳頭，稍微鬆了一點點。她想，傅君佑這個人，她認識了八年，她真的沒有認真看過他。</p>
+      </div>`
+  },
+  {
+    id: 'ch11',
+    nav: '第十一章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十一章</div>
+        <div class="chapter-title-num">說填空的話</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>那之後，傅君佑開始更常找她。</p>
+        <p class="indent">不是刻意的那種頻繁，是那種自然延伸的——他說展覽快好了，問她要不要來看，她去了；他說發現一家拍照很好看的咖啡廳，問她週末要不要，她去了；他拍了一張她的側臉，傳給她說「這張我覺得很好」，她說「我閉著眼睛」，他說「所以好啊」。</p>
+        <p class="indent">她慢慢發現，傅君佑說話的密度比她記憶中高很多，或者說，他本來就是這個密度，只是她之前不是主要接收的那個人。</p>
+        <p class="indent">她問他：「你平常這麼愛說話嗎。」</p>
+        <p class="indent">他說：「對，你以前不知道嗎。」</p>
+        <p class="indent">她說：「我以為你是話少的人。」</p>
+        <p class="indent">他說：「我話少是因為有人比我更愛說，我就聽著了。」</p>
+        <p class="indent">她說：「那個人是誰。」</p>
+        <p class="indent">他說：「很多人，你也是其中一個，但你最近話少了。」</p>
+        <p class="indent">她說：「我最近在修煉說話。」</p>
+        <p class="indent">他說：「修出來的效果是越說越少，還是說話越來越空。」</p>
+        <p class="indent">她停了一下，說：「傅君佑你很毒。」</p>
+        <p class="indent">他說：「我是說實話。你最近說話，有些時候是在填空，不是真的有話說。」</p>
+        <p class="indent">她沒有回答，因為他說的是真的。</p>
+        <p class="indent">他說：「說你討厭的事，說你喜歡的事，說任何真的有感覺的東西都行，不要說填空的。」</p>
+        <p class="indent">她說：「那我說一件事，最近有個主編讓我改一篇稿子改了五遍，每次改的方向都不一樣，我覺得我快要失去對文字的感情了。」</p>
+        <p class="indent">他說：「那個主編的問題是沒有自己的審美，還是在測試你的耐性？」</p>
+        <p class="indent">她說：「我覺得是沒有審美，但對外解釋成測試。」</p>
+        <p class="indent">他說：「那你可以在第六版的時候問他，這篇稿子最核心的讀者想要感受到什麼，把問題丟給他，讓他說清楚，然後你照他說的做，做完他就沒辦法再改了，因為是他說的。」</p>
+        <p class="indent">她說：「……你這個人。」</p>
+        <p class="indent">他說：「怎樣。」</p>
+        <p class="indent">她說：「你有時候說話真的很有用。」</p>
+        <p class="indent">他說：「我一直都有用，你沒發現。」</p>
+        <p class="indent">那是他第一次直接說這句話，她笑了笑，說「那我以後多利用你」，他說「可以，但要請吃燒肉」。</p>
+        <p class="indent">那晚她去用了他說的方法，主編沉默了一下，然後說了方向，她照著寫，稿子第一版就過了。</p>
+        <p class="indent">她傳訊息給傅君佑：「你說的方法有效，不愧是傅大人，謝謝。」</p>
+        <p class="indent">他說：「說多少次謝謝了，下次直接說燒肉。」</p>
+        <p class="indent">她說：「燒肉。」</p>
+        <p class="indent">他說：「好，週五。」</p>
+        <p class="indent">她說：「你就在等這句吧。」</p>
+        <p class="indent">他說：「嗯哼。」</p>
+        <p class="indent">那個肯定讓她愣了一下，然後笑了。</p>
+      </div>`
+  },
+  {
+    id: 'ch12',
+    nav: '第十二章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十二章</div>
+        <div class="chapter-title-num">閉著眼睛的樣子</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>攝影展開幕那天，她去了，帶了一束花，說是賀禮，他說「你第一次送我東西」，她說「沒有吧，你生日我送過你書」，他說「書不算，書是因為我自己說我要看那本」，她說「你這個人很挑剔」。</p>
+        <p class="indent">那天展覽的人很多，她一個人在裡面走，看他的照片。</p>
+        <p class="indent">他拍的東西讓她有點驚訝，她知道他是攝影師，但她沒有認真看過他的作品，那天看了，覺得那些照片有一種她說不清楚的溫度，不是那種精準漂亮的構圖，是那種讓你覺得拍照的人很珍惜他鏡頭裡的東西。</p>
+        <p class="indent">她走到一張照片前，停下來。</p>
+        <p class="indent">那張照片是一個女生的側臉，坐在咖啡廳的窗邊，光從窗戶進來，她閉著眼睛，手裡端著杯子，那個畫面很靜。</p>
+        <p class="indent">那個女生是她。</p>
+        <p class="indent">她站在那張照片前，有點說不出話來，旁邊站了幾個人在看，說「這張很好」，說「那個光很舒服」，她站在那裡，聽著別人評論自己的側臉。</p>
+        <p class="indent">傅君佑不知道什麼時候走過來，站在她旁邊，說：「被你發現了。」</p>
+        <p class="indent">她說：「你為什麼放這張。」</p>
+        <p class="indent">他說：「因為我覺得好。」</p>
+        <p class="indent">她說：「你問過我嗎。」</p>
+        <p class="indent">他說：「沒有，你要撤嗎，我可以撤。」</p>
+        <p class="indent">她看著那張照片，說：「不用撤。」她停了一下，說，「你什麼時候拍的。」</p>
+        <p class="indent">他說：「你說那個燒肉那晚，你去廁所前，你坐在窗邊，閉著眼睛休息，我拍了。」</p>
+        <p class="indent">她說：「我不知道。」</p>
+        <p class="indent">他說：「你不知道的時候才拍得好，你知道的話就會擺造型。」</p>
+        <p class="indent">她說：「你這個人拍照不打招呼。」</p>
+        <p class="indent">他說：「打招呼就不真了。」</p>
+        <p class="indent">她看著那張照片，看了很久，說：「我看起來還好嗎。」</p>
+        <p class="indent">他說：「很好。」</p>
+        <p class="indent">她說：「閉著眼睛。」</p>
+        <p class="indent">他說：「閉著眼睛的時候，你臉上的東西比張著眼睛少很多。」</p>
+        <p class="indent">她轉過頭看他，說：「什麼東西。」</p>
+        <p class="indent">他說：「那種一直在算什麼的感覺。」</p>
+        <p class="indent">她說：「我有一直在算嗎。」</p>
+        <p class="indent">他說：「你不知道你自己嗎。」</p>
+        <p class="indent">她沒有說話。</p>
+        <p class="indent">他說：「那張照片裡的你，是我最常看到的那個你，但你自己看不到。」</p>
+        <p class="indent">她不知道那句話應該怎麼接，所以沒有接，轉開了視線，說：「你今天展覽很成功，恭喜你。」</p>
+        <p class="indent">他說：「謝謝，燒肉還我。」</p>
+        <p class="indent">她說：「好。」</p>
+      </div>`
+  },
+  {
+    id: 'ch13',
+    nav: '第十三章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十三章</div>
+        <div class="chapter-title-num">夠了嗎</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>三個月後，孟熙和傅君佑在一起了。</p>
+        <p class="indent">不是哪一天突然決定的，是那種水到渠成的感覺，他問「要跟我在一起嗎」，她說「好，我以為你不會說了」，他說「妳知道多久了」，她說「攝影展那天」，他說「那妳呢」，她說「我不確定，但我在你身邊的時候，是我想要的感覺」。</p>
+        <p class="indent">他說：「那不夠。」</p>
+        <p class="indent">她說：「什麼。」</p>
+        <p class="indent">他說：「我不想要妳因為我給的感覺好就跟我在一起。」</p>
+        <p class="indent">她說：「傅君佑，我說的感覺是，我看到你傳來的訊息會想快點回，跟你吃飯的時候不看時間，你說我閉著眼睛的樣子好看，我回家想了很久，你說燒肉，我第一個反應不是算要花多少錢，是想起上次我們去吃的那個下午。」</p>
+        <p class="indent">他沉默了一下。</p>
+        <p class="indent">她說：「夠了嗎。」</p>
+        <p class="indent">他說：「夠了。」</p>
+        <p class="indent">她說：「那你說什麼不夠。」</p>
+        <p class="indent">他說：「我試一下你夠不夠。」</p>
+        <p class="indent">她說：「試什麼——」</p>
+        <p class="indent">然後他把她抱住了，那個擁抱讓她踉蹌了兩步，但她就這樣站著，被他抱著，沒有掙脫，她想，她在說完那些話之後，有沒有想過他的反應，她有想過，她想過他可能再說一句廢話，或者笑，或者說「真的嗎」。</p>
+        <p class="indent">她沒有想過擁抱。</p>
+        <p class="indent">但擁抱是對的。</p>
+      </div>`
+  },
+  {
+    id: 'ch14',
+    nav: '第十四章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十四章</div>
+        <div class="chapter-title-num">他人很好</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>齊思豫是從別人那裡知道的，傳來一條訊息：「聽說你跟傅君佑在一起了？」</p>
+        <p class="indent">她說：「嗯。」</p>
+        <p class="indent">他說：「什麼時候的事。」</p>
+        <p class="indent">她說：「最近。」</p>
+        <p class="indent">他說：「嗯。」</p>
+        <p class="indent">那個「嗯」停了很久，她以為那條對話就這樣結束了，然後他說：「他人很好。」</p>
+        <p class="indent">她說：「我知道。」</p>
+        <p class="indent">他說：「妳們好好的。」</p>
+        <p class="indent">她說：「謝謝。」</p>
+        <p class="indent">然後對話結束了。</p>
+        <p class="indent">她把手機放下，覺得那段對話有什麼東西讓她不太自在，但她說不清楚是哪裡，她想，也許只是沒想到他這麼快知道，有點措手不及。</p>
+        <p class="indent">她沒有多想，繼續過自己的日子。</p>
+      </div>`
+  },
+  {
+    id: 'ch15',
+    nav: '第十五章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十五章</div>
+        <div class="chapter-title-num">和平的</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>齊思豫和林依在一起兩年之後，分開了。</p>
+        <p class="indent">孟熙是從群組的訊息知道的，他說「我跟林依結束了，就是說一聲」，大家回了幾句，大多是安慰的話，他說沒事，說謝謝，然後沒有再說什麼。</p>
+        <p class="indent">她傳了一條私訊：「你還好嗎。」</p>
+        <p class="indent">他說：「還好，是和平的。」</p>
+        <p class="indent">她說：「那就好，有什麼需要就說。」</p>
+        <p class="indent">他說：「謝謝。」</p>
+        <p class="indent">她說：「嗯。」</p>
+        <p class="indent">她以為就這樣了，但幾天後他說「妳最近有空嗎，想跟妳說說話」，她說有，他說「那我們吃個飯吧」。</p>
+        <p class="indent">那頓飯他說了一些分開的事，說沒有誰對誰錯，說他們之間最後出了一個問題，她一直覺得他心裡有什麼地方她沒辦法碰到，她說出來了，他聽了，發現她說得對，所以他們決定結束。</p>
+        <p class="indent">孟熙聽著，說：「那個她碰不到的地方，你知道是什麼嗎？」</p>
+        <p class="indent">他說：「知道，我後來想清楚了。」</p>
+        <p class="indent">她說：「是什麼。」</p>
+        <p class="indent">他沉默了一下，說：「不重要了，重要的是我知道了。」</p>
+        <p class="indent">她說：「好吧。」</p>
+        <p class="indent">那頓飯結束，她回家，告訴傅君佑吃飯的事，傅君佑問「他還好嗎」，她回「他說還好」，傅君佑說「嗯」，然後說「那你好嗎」，她說「我好啊，為什麼問我」，他說「就問問」。</p>
+        <p class="indent">她說：「傅君佑。」</p>
+        <p class="indent">他說：「嗯哼。」</p>
+        <p class="indent">她說：「你在擔心什麼。」</p>
+        <p class="indent">他說：「沒有擔心，就是想知道你好不好。」</p>
+        <p class="indent">她說：「我很好，你放心。」</p>
+        <p class="indent">他說：「好，那就好。」</p>
+        <p class="indent">她知道他沒有說完，但她也知道，有些話他說了，沒有意義，只能她自己說清楚。</p>
+        <p class="indent">她想了一下，傳訊息：「我跟他吃飯，我心裡很平靜，沒有什麼波動，如果你想問這個的話。」</p>
+        <p class="indent">他過了一會兒，回：「謝謝你告訴我。」</p>
+        <p class="indent">她說：「我們之間不需要謝謝。」</p>
+        <p class="indent">他說：「好，那燒肉。」</p>
+        <p class="indent">她說：「行，周末。」</p>
+      </div>`
+  },
+  {
+    id: 'ch16',
+    nav: '第十六章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十六章</div>
+        <div class="chapter-title-num">有些東西記得住</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>齊思豫找她說話的頻率，在那之後慢慢高了一點。</p>
+        <p class="indent">不是明顯的那種，是那種一週一次變成三四天一次，傳的東西也從轉發文章變成說自己想到的事。有一次他說「我今天路過一個地方，想到你說過的一句話」，她說「什麼話」，他說「你說有些稿子是因為作者在跟讀者猜謎，但謎題沒有答案，我今天看一個建築，覺得設計師在跟用的人猜謎，謎題也沒有答案，就想到你」。</p>
+        <p class="indent">她說：「我什麼時候說過這個。」</p>
+        <p class="indent">他說：「大三，你在改你的論文，說到一半，說了這句。」</p>
+        <p class="indent">她說：「你記得那麼清楚。」</p>
+        <p class="indent">他說：「你說話有時候很準，記得住。」</p>
+        <p class="indent">她看著那條訊息，想起很多年前在圖書館，他說「妳問問題的方式很好」，說「妳問到的都是核心」，他一直都這樣，記得她說的話，記得她的方式，以一種她一直沒有認真接收的方式在看她。</p>
+        <p class="indent">她沒有說什麼，只說：「你記性不錯。」</p>
+        <p class="indent">他說：「有些東西記得住。」</p>
+        <p class="indent">她說：「嗯。」</p>
+        <p class="indent">然後她闔上那個對話框，出去找傅君佑，說「我們去吃東西吧」，傅君佑說「你今天請客嗎」，她說「今天你請」，他說「好，那你先去穿外套，天涼」，她說「我知道」，他回「你上次說知道，出門還是沒穿」，她說「那次是例外」，他笑了，她也笑了。</p>
+        <p class="indent">走出去的時候他拉了一下她的手，她沒有縮。</p>
+      </div>`
+  },
+  {
+    id: 'ch17',
+    nav: '第十七章',
+    header: `
+      <div class="chapter-header">
+        <div class="chapter-label">第十七章</div>
+        <div class="chapter-title-num">那件事它就只待在那個時間裡</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>齊思豫說想見她，是一個週三的下午。</p>
+        <p class="indent">說的方式很普通，「妳這週有空嗎，我想找妳說話」，她說有，他說「那就週四晚上，我訂位置」，她說好。</p>
+        <p class="indent">她去了，那家餐廳他訂得很用心，不是那種有什麼重要場合的地方，但也不是隨便一個吃飯的地方，是她提過一次說想去的那種風格。</p>
+        <p class="indent">她坐下來，說：「這家你怎麼找到的。」</p>
+        <p class="indent">他說：「你說過，說想去試試。」</p>
+        <p class="indent">她說：「我什麼時候說過。」</p>
+        <p class="indent">他說：「去年，有一次大家說吃飯的地方，你說你最近在找這種風格的，然後說了這家。」</p>
+        <p class="indent">她看著他，說：「齊思豫，你記性真的很好。」</p>
+        <p class="indent">他說：「有些東西記得住。」</p>
+        <p class="indent">她聽到這句話，想起他幾天前也說了這句，記性好，有些東西記得住，那個「有些東西」是什麼，她沒問過。</p>
+        <p class="indent">那頓飯吃到一半，他說：「我有件事想告訴妳。」</p>
+        <p class="indent">她說：「說吧。」</p>
+        <p class="indent">他說：「我後來想了很久，林依說我心裡有個地方她碰不到，我知道是什麼了。」</p>
+        <p class="indent">她說：「你之前說不重要了。」</p>
+        <p class="indent">他說：「那時候是那時候，現在覺得還是說清楚比較好。」</p>
+        <p class="indent">她拿著湯匙，等他說。</p>
+        <p class="indent">他說：「她說的那個地方，放的是妳。」</p>
+        <p class="indent">孟熙沒有說話。</p>
+        <p class="indent">他說：「不是最近，是很久以前的事，我一直放著，一直沒有認清楚，後來清楚了，但清楚的時候妳已經跟傅君佑在一起了，我沒有資格說，但我想讓妳知道。」</p>
+        <p class="indent">她看著桌上的湯，過了一會兒，說：「齊思豫。」</p>
+        <p class="indent">他說：「嗯。」</p>
+        <p class="indent">她說：「如果你更早說，我不知道是什麼結果。」</p>
+        <p class="indent">他說：「我知道，所以我沒有任何意思，只是想讓你知道，有那麼一件事。」</p>
+        <p class="indent">她說：「我知道了。」</p>
+        <p class="indent">她把湯匙放下，看著他，說：「我也有件事要讓你知道。」</p>
+        <p class="indent">他說：「說。」</p>
+        <p class="indent">她說：「我也喜歡過你，也是很久以前，也是一直沒有認清楚，後來清楚了，但清楚了就算了。」</p>
+        <p class="indent">他說：「算了。」</p>
+        <p class="indent">她說：「嗯，算了。因為那個時候你有你的人，後來我有我的人，那個喜歡它就只待在那個時間裡，就那樣了。」</p>
+        <p class="indent">他沉默了很久，說：「嗯。」</p>
+        <p class="indent">她說：「但是謝謝你告訴我。」</p>
+        <p class="indent">他說：「謝謝妳也告訴我。」</p>
+        <p class="indent">他們把那頓飯吃完了，說了一些其他的話，說工作，說最近看的書，說那家餐廳的甜點不錯，說下次可以再來。</p>
+        <p class="indent">都是真的，不是填空，是真的在說。</p>
+        <p class="indent">走出去的時候，她說「那先這樣，我先走了」，他說「嗯，路上小心」，她說「你也是」，然後各自走了。</p>
+        <p class="indent">她走了大概一個路口，停下來，在原地站了一下。</p>
+        <p class="indent">她想，如果更早一點，如果他更早說，如果她當時認清楚那個感覺，如果那個時機對一點，也許就不一樣了。</p>
+        <p class="indent">但時機沒有對，她沒有，他也沒有，兩個人各自錯過，各自把那件事放著，等到放清楚了，才發現彼此都放著，而那時候已經是另一個時間了。</p>
+        <p class="indent">她想了一下，繼續走，掏出手機，傳了傅君佑一條：「我結束了，在路上。」</p>
+        <p class="indent">傅君佑回：「我在你家樓下，你說今晚吃完飯可能會想要有人陪。」</p>
+        <p class="indent">她愣了一下，說：「我什麼時候說這個。」</p>
+        <p class="indent">他說：「你沒說，我猜的。」</p>
+        <p class="indent">她站在路燈下，看著那條訊息，那個空，那個一直以來的空，在那一刻，她知道它往哪裡去了。</p>
+        <p class="indent">她說：「你帶吃的了嗎。」</p>
+        <p class="indent">他說：「帶了，你喜歡的那個滷味。」</p>
+        <p class="indent">她說：「傅君佑。」</p>
+        <p class="indent">他說：「嗯哼。」</p>
+        <p class="indent">她說：「你知道嗎，你有時候讓我覺得，你一直都在。」</p>
+        <p class="indent">他說：「我就是一直都在。」</p>
+        <p class="indent">她說：「那確實。」</p>
+        <p class="indent">她加快步伐往家的方向走，路燈一盞一盞地照過去，城市的夜還很長，她走在裡面，不空了。</p>
+      </div>`
+  },
+  {
+    id: 'epilogue',
+    nav: '尾聲',
+    header: `
+      <div class="chapter-header">
+        <div class="special-label">尾聲</div>
+        <div class="chapter-rule"></div>
+      </div>`,
+    content: `
+      <div class="prose">
+        <p>後來，孟熙說起那段往事，說的方式很平靜。</p>
+        <p class="indent">她說：「我那時候真的沒有認清楚，不是裝的，是真的慢半拍。」</p>
+        <p class="indent">傅君佑說：「我知道。」</p>
+        <p class="indent">她說：「你什麼時候知道我喜歡他的。」</p>
+        <p class="indent">他說：「大四，你說你跟他說話不需要換頻道，我就知道了。」</p>
+        <p class="indent">她說：「那你為什麼不說。」</p>
+        <p class="indent">他說：「說什麼，說你喜歡別人我知道嗎。」</p>
+        <p class="indent">她說：「說你喜歡我。」</p>
+        <p class="indent">他說：「那時候說沒用，你又沒在接收我的訊號。」</p>
+        <p class="indent">她說：「那你什麼時候開始想說的。」</p>
+        <p class="indent">他說：「你開始接收的時候。」</p>
+        <p class="indent">她說：「你怎麼知道我開始接收了。」</p>
+        <p class="indent">他說：「因為你開始真的看我了，不是看過去，是看我。」</p>
+        <p class="indent">她說：「傅君佑你說話真的很讓人——」</p>
+        <p class="indent">他說：「讓人什麼。」</p>
+        <p class="indent">她說：「讓人沒有辦法反駁。」</p>
+        <p class="indent">他說：「那就不要反駁。」</p>
+        <p class="indent">她說：「好。」</p>
+        <p class="indent">那個好她說出口的時候，傅君佑笑了，她也笑了，那個笑是真的，不空，不填，就是真的。</p>
+
+        <div class="scene-break">——</div>
+
+        <p>齊思豫後來也放下了，沒有一直停在那個地方。</p>
+        <p class="indent">他偶爾還是會傳東西給孟熙，說看到什麼，想到她說過的話，她回，他也回，那個對話沒有重量，是兩個清算過帳、帳本關上了還是朋友的人說的話。</p>
+        <p class="indent">有一次他說：「妳跟傅君佑很好。」</p>
+        <p class="indent">她說：「嗯，他很好。」</p>
+        <p class="indent">他說：「我知道，他一直都很好，是我沒注意到。」</p>
+        <p class="indent">她說：「你現在注意到了。」</p>
+        <p class="indent">他說：「嗯，現在看到了。」</p>
+        <p class="indent">她說：「那就好。」</p>
+        <p class="indent">她放下手機，窗外城市的燈一盞一盞亮著，她想，那些錯過的事，它們是有形狀的，是真的發生過的，只是時間過了，它們就待在它們原本的位置，不會消失，但也不再往前走了。</p>
+        <p class="indent">而她，往前走了。</p>
+      </div>
+
+      <div class="end-mark">——　全文完　——</div>
+
+      <div class="authors-note">
+        <p>意難平不在於齊思豫，而在於時間。他們都喜歡過，都沒有說，都等著一個說不清楚的確定，等到等不了了各自往前走，然後回頭才看清楚，那件事原來是這個形狀。</p>
+        <p>齊思豫的告白是真的，孟熙的拒絕也是真的，不是不喜歡，是喜歡那件事，它屬於另一個時間，帶不到現在來。</p>
+        <p>傅君佑不是備胎，不是湊合，是那個一直都在、等孟熙開始接收的人。他知道她喜歡誰，但他等的不是她放棄那個人，是她看見他。</p>
+        <p>最後她看見了。</p>
+      </div>`
+  }
+];
+
+// ── Build nav & pages ─────────────────────────────────────────────────────────
+let currentIndex = 0;
+
+function buildReader() {
+  const navList = document.getElementById('navList');
+  const navDropdown = document.getElementById('navDropdown');
+  const container = document.getElementById('pageContainer');
+
+  chapters.forEach((ch, i) => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.textContent = ch.nav;
+    a.href = '#';
+    a.addEventListener('click', e => { e.preventDefault(); goToPage(i); });
+    li.appendChild(a);
+    navList.appendChild(li);
+
+    const da = document.createElement('a');
+    da.textContent = ch.nav;
+    da.href = '#';
+    da.addEventListener('click', e => {
+      e.preventDefault();
+      goToPage(i);
+      closeDropdown();
+    });
+    navDropdown.appendChild(da);
+
+    const page = document.createElement('div');
+    page.className = 'page';
+    page.id = 'page-' + ch.id;
+    page.innerHTML = `
+      <div class="page-inner">
+        ${ch.header}
+        ${ch.content}
+        <div class="page-nav">
+          <button class="page-nav-btn prev-btn ${i === 0 ? 'hidden' : ''}" onclick="goToPage(${i-1})">
+            ← ${i > 0 ? chapters[i-1].nav : ''}
+          </button>
+          <span class="page-nav-label">${i+1} / ${chapters.length}</span>
+          <button class="page-nav-btn next-btn ${i === chapters.length-1 ? 'hidden' : ''}" onclick="goToPage(${i+1})">
+            ${i < chapters.length-1 ? chapters[i+1].nav : ''} →
+          </button>
+        </div>
+      </div>`;
+    container.appendChild(page);
+  });
+
+  goToPage(0);
+}
+
+function goToPage(index) {
+  const pages = document.querySelectorAll('.page');
+  pages.forEach(p => p.classList.remove('active'));
+
+  const navLinks = document.querySelectorAll('#navList a');
+  navLinks.forEach(a => a.classList.remove('active'));
+
+  const dropLinks = document.querySelectorAll('#navDropdown a');
+  dropLinks.forEach(a => a.classList.remove('active'));
+
+  pages[index].classList.add('active');
+  navLinks[index].classList.add('active');
+  dropLinks[index].classList.add('active');
+
+  pages[index].scrollTop = 0;
+  navLinks[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+  currentIndex = index;
+}
+
+function toggleDropdown() {
+  document.getElementById('navDropdown').classList.toggle('open');
+}
+
+function closeDropdown() {
+  document.getElementById('navDropdown').classList.remove('open');
+}
+
+function enterReader() {
+  document.getElementById('cover').classList.add('hidden');
+  document.body.style.overflow = '';
+  document.getElementById('reader').classList.add('visible');
+}
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('reader').classList.contains('visible')) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    if (currentIndex < chapters.length - 1) goToPage(currentIndex + 1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    if (currentIndex > 0) goToPage(currentIndex - 1);
+  }
+});
+
+buildReader();
+</script>
+</body>
+</html>
